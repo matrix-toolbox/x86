@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en_EN">
+<title>x86 &bull; plasma</title>
+<meta charset="utf-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+<link rel="icon" href="../x86.ico">
+<link rel="stylesheet" href="../x86.css">
+
+<style>
+ol{list-style-type:none;counter-reset:item;margin:0;padding:0;}
+ol > li{display:table;counter-increment:item;margin-bottom:0.6em;}
+ol > li:before{content: counters(item, ".") ". ";display:table-cell;padding-right:0.6em;}
+li ol > li{margin:0;}
+li ol > li:before{content: counters(item, ".") " ";}
+</style>
+
+
+<p>updated at 2021-02-26 by wojtek at bitologia.org (<a href="../index.html">index</a>)</p>
+<hr>
+
+<h1>plasma</h1>
+
+<!--p>Another classic...</p-->
+
+
+<p>Iterative (slow and unefficient) solution based on the
+<a href="https://en.wikipedia.org/wiki/Plasma_effect" target="_blank">diamond-square algorithm</a>.</p>
+<ol>
+<li>allocate <b>square</b> lattice P of size L=2^N+1 for N = 2, 3, 4, ... ; here N = 3 and L = 8+1</li>
+<li>step S = 0: initialize corners
+<pre>
+       P[0][0] = random value
+       P[0][L] = random value
+       P[L][0] = random value
+       P[L][L] = random value</pre></li>
+<li>in every next step S = 1, 2, 3, ...
+
+	<ol>
+       <li>divide the appropriate area of P onto 4 smaller rectangles (here squares)</li>
+       <li>apply the "d-s" algorithm to each sub-rectangle
+       <br>
+       <br>
+       simply, in every step S one has
+       4^(S-1) sub-rectangles of size (L-1)/2^(S-1) each, sitting at positions
+       [(L-1)*j/2^(S-1), (L-1)*k/2^(S-1)] for j and k = 0, 1, ... 2^(S-1)-1
+		<br>
+	<br>
+
+       next, for each sub-rectangle:
+       <br>
+       * ["d"] its center is a mean value of its four vertices
+       <br>
+       * ["s"] the center of each side is a mean value of its three closest (euclidean) neighbours
+       <br>
+       <br>
+       such order guarantees that the "s" part always has three elements to take the average, moreover,
+       adding decreasing noise = noise(S) makes it more realistic
+<br>
+<br>
+       example 4-step process for N = 3:
+       points calculated at each step are numbered accordingly
+       
+<pre>
+       S=0                  S=1
+       0 . . . . . . . 0    0 . . . 1 . . . 0
+       . . . . . . . . .    . . . . . . . . .
+       . . . . . . . . .    . . . . . . . . .
+       . . . . . . . . .    . . . . . . . . .
+   P = . . . . . . . . .    1 . . . 1 . . . 1
+       . . . . . . . . .    . . . . . . . . .
+       . . . . . . . . .    . . . . . . . . .
+       . . . . . . . . .    . . . . . . . . .  
+       0 . . . . . . . 0    0 . . . 1 . . . 0
+	
+       S=2                  S=3
+       0 . 2 . 1 . 2 . 0    0 3 2 3 1 3 2 3 0
+       . . . . . . . . .    3 3 3 3 3 3 3 3 3
+       2 . 2 . 2 . 2 . 2    2 3 2 3 2 3 2 3 2
+       . . . . . . . . .    3 3 3 3 3 3 3 3 3
+   P = 1 . 2 . 1 . 2 . 1    1 3 2 3 1 3 2 3 1
+       . . . . . . . . .    3 3 3 3 3 3 3 3 3
+       2 . 2 . 2 . 2 . 2    2 3 2 3 2 3 2 3 2
+       . . . . . . . . .    3 3 3 3 3 3 3 3 3
+       0 . 2 . 1 . 2 . 0    0 3 2 3 1 3 2 3 0</pre></li></ol>
+
+	
+<li>repeat steps S until resolution limit is reached</li>
+<li>store data in file</li>
+<li>visualize</li>
+</ol>
+
+<p>For non-square lattices one needs to implement fitting/rescaling procedure.</p>
+
+<p>QBasic <a href="PLASMA01.BAS" class="local-link">source</a> is wickedly slow, although
+it is possible to watch the final effect:</p>
+<figure>
+<img src="PLASMA01.GIF" alt="">
+<figcaption>Fig. 1. Plasma in motion.</figcaption>
+</figure>
+
+<hr>
+
+<h2>3-D variations</h2>
+
+<p>Generic <a href="plasma02.png" rel="nofollow" class="local-link">picture</a>
+for a 51<u>3</u> &times; 51<u>3</u> lattice generated
+by the C <a href="plasma02.c" rel="nofollow" class="local-link">code</a> and visualised with <code>gnuplot</code></p>
+<pre>
+	$ gnuplot
+	set palette rgb 33,13,10
+	splot 'plasma02.dat' with points palette pt 4 ps 0.5
+</pre>
+
+<p>A bit faster and more efficient recursive
+<a href="plasma03.c" rel="nofollow" class="local-link">solution</a>
+generates a similar landscape:
+<!--a href="plasma03.png" rel="nofollow" class="local-link">picture</a>.--></p>
+<figure>
+<img src="plasma03.png" alt="">
+<figcaption>Fig. 2. Plasma-like landscape.</figcaption>
+</figure>
+
+
