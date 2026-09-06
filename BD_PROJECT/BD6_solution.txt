@@ -1,0 +1,123 @@
+
+
+room: J
+peek right
+left
+left
+down
+left
+right
+up
+right
+push right
+up
+peek right
+peek left
+left
+(one diamond left at the bottom)
+up x 10
+down x 10
+right
+peek left
+peek left
+right
+up
+right max
+up max
+left max and see what happened
+probability that configuration will be successful is small but non-zero
+plasma should be still trapped, butterfly is killed and firefly goes free
+let it go and keep it separated with a single diamond,
+confine plasma again and collect 99+ diamonds
+
+K
+* wait as falling diamonds and stones will let you go down
+* collect all diamonds
+* make firefly free - remember to clean at least 1 field on the right side around upper walls (fire fly goes clock-wise)
+* watch firely flying and kill it to break the wall for exit
+
+L
+* go left avoiding fireflies (kill some of them, but not all - two of them will be needed!)
+* destroy a stone blocking a passage between iron walls (1st firefly)
+* go up, originally it looks like this:
+
+#########
+#.......#
+#.o.o.o.#
+#.=.=.=.#
+#.o.o.o.#
+#.=.=.=.#
+#.o.o.o.#
+#.=.=.=.#
+#........
+#########
+
+so, make it like this:
+
+#########
+#       #
+# o o o #
+# = = =.#
+# o o o.#
+# = = =.#
+# o o.o.#
+# = =.=.#
+#
+#########
+
+let firefly (2nd) go in:
+
+#########
+#       #
+# oRo o #
+# = = =.#
+# o o o.#
+# = =y=.#
+# o o.o.#
+# = =.=.#
+#
+#########
+
+
+and kill it, so that the chamber looks like:
+
+#########
+#       #
+# o R o #
+# = = =.#
+# o    .#
+# =    .#
+# o    .#
+# = =.=.#
+#
+#########
+
+and finally do the following:
+
+#########
+#       #
+#    Ro #
+# = = = #
+#       #
+# =     #
+#      o#
+# =o=.=.#
+#  o
+#########
+
+now it is enough to push the stone right:
+
+#########
+#       #
+#     R #
+# = = = #
+#       #
+# =     #
+#      o#
+# =o=.=.#
+#  o  *
+#########
+
+:)
+
+SHOULD BE DONE BETTER TO GET _FOUR_ DIAMONDS!!!
