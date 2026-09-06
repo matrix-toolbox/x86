@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en_GB">
+<meta charset="utf-8">
+<meta name="description" content="martian landsape renderer by Tim J. Clarke revisited">
+<meta name="keywords" content="mars.exe martian landscape renderer tim clarke">
+<meta name="author" content="wojtek bruzda">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="../x86.ico">
+<title>x86 &bull; DN (SS)</title>
+
+<style>
+*{font-variant-ligatures: none;}
+#hex-table{font-family:monospace;}
+th, td{background-color:#ddd;padding:4px;border:1px solid #000;font-size:20px;vertical-align:top;}
+th, td:first-child{border:none;background-color:#fff;font-weight:bold;color:#00f;}
+#hex-table, span{font-size:10px;}
+.c1{color:#f00;}
+#hex-table > tbody > tr:nth-child(1) > td{background-color:#ff0;}
+#hex-table > tbody > tr:nth-child(2) > td{background-color:#ff0;}
+#hex-table > tbody > tr:nth-child(3) > td{background-color:#ff0;}
+#hex-table > tbody > tr:nth-child(4) > td{background-color:#ff0;}
+.magic-const{background-color:#0f0;}
+.label{color:#00f;}
+#ss-table{all:unset;}
+.local-link{font-weight:bold;}
+.footnote{font-size: 0.78em;}
+.edit{background-color:#ff0;padding:4px;}
+</style>
+
+<p>updated at 2021-03-29 by wojtek at bitologia.org (<a href="../index.html">index</a>)</p>
+<hr>
+
+<h1>legacy stuff of DN (SS)</h1>
+
+<p>DOS Navigator (<a href="https://en.wikipedia.org/wiki/DOS_Navigator" target="_blank">DN</a>)
+is a successor of NC,
+devouring significantly less RAM (only 1056B) in comparison with other file managers
+while offering the same general functionality.
+DN is shipped  with several screen savers (SS) and Tetris!
+In fact the SS are just ordinary executable programs
+launched when user's activity is idle.
+It is enough to rename <code>*.SS</code> to <code>*.EXE</code> and run it to watch simple although attractive visual effects.</p>
+
+<p>Three SS from DN are going to be disassembled. See also another
+<a href="../mars/index.html" class="local-link">masterpiece</a> from 1993.</p>
+
+<p>Why disassembling? For two reasons. First, if you cannot change something, you do not own it!
+Each of the presented codes carries something new or nonobvious and it is the perfect source of knowledge.
+Second, to... reduce the distribution of DN:</p>
+<pre>
+	  RGB.EXE  341 --&gt;   RGB.COM --&gt;   RGB.SS <b>286</b>
+	GLEAM.EXE 1492 --&gt; GLEAM.COM --&gt; GLEAM.SS <b>919</b>
+	 FIRE.EXE  816 --&gt;  FIRE.COM --&gt;  FIRE.SS <b>306</b>
+         --------------------------------------------
+                &Sigma;=2649                         &Sigma;=<b>1511</b>
+</pre>
+
+<hr>
+<h2>1. RGB<sup>*</sup></h2>
+<p class="footnote"><sup>*</sup> Each software is named just to be easily distinguished.</p>
+<p>The simplest one. Actually it is already
+in the <a href="https://en.wikipedia.org/wiki/COM_file" target="_blank">COM</a>
+format. In DEBUG one readily recognises
+three subroutines (procedures), main body and three arrays.</p>
+<p>Here, and in the forthcoming examples,
+mouse handling was removed completely, so it responds only for k/b.</p>
+
+<pre>
+        ; 2021-02-27
+        ; 2021-03-01
+        ; wojtek[at]bitologia.org
+        ; SS from DN
+
+        .model small
+        .code
+                org 100h
+        start:  mov ax, 0b800h ; text mode only
+                mov es, ax
+                mov di, 1
+                mov cx, 07d0h
+                mov al, 7
+                cld
+        _012b:  mov al, es:[di]
+                mov bl, al
+                and bl, 0fh
+                cmp bl, 1
+                jz _0158
+                cmp bl, 8
+                jz _0158
+                cmp bl, 6
+                jz _0158
+                mov bl, al
+                and bl, 0f0h
+                cmp bl, 10h
+                jz _015c
+                cmp bl, 80h
+                jz _015c
+                cmp bl, 60h
+                jz _015c
+                jmp short _015e
+        _0158:  and al, 0f0h
+                jmp short _015e
+        _015c:  and al, 0fh
+        _015e:  and al, 0f7h
+                stosb
+                inc di
+                loop _012b
+                in al, 60h
+                mov cs:[_key], al
+        _0169:  mov bx, offset _ah; 0234h
+                call _020f
+                mov bx, offset _bl; 023fh
+                call _020f
+                mov bx, offset _bh; 023ah
+                call _020f
+                xor di, di
+                call _0226
+        _0180:  mov bx, offset _ah
+                call _01ed
+                mov bx, offset _bl
+                call _01ed
+                mov bx, offset _bh
+                call _01ed
+                mov dx, 03c8h
+                xor al, al
+                out dx, al
+                mov ah, cs:[_ah]; [0234]
+                mov bl, cs:[_bl]; [023f]
+                mov bh, cs:[_bh]; [024a]
+                mov dx, 03dah
+        _01a7:  in al, dx
+                rcr al, 1
+                jnb _01a7
+                mov dx, 03c9h
+                mov al, ah
+                out dx, al
+                mov al, bl
+                out dx, al
+                mov al, bh
+                out dx, al
+                inc di
+                cmp di, 0198h
+                jnz _0180
+                in al, 60h
+                test al, 80h
+                jnz _0169
+                cmp al, cs:[_key]
+                jnz _01ec
+                jmp _0169
+        _01ec:  ret ; ---> DOS
+        _01ed:  xor ah, ah
+                mov al, [bx + 01]
+                mov dx, [bx + 03]
+                sub dx, di
+                cmp dx, +00
+                jge _0202
+                neg dx
+                cmp dx, ax
+                jg _020b
+        _0202:  cmp dx, ax
+                jg _020b
+                sub al, dl
+                mov [bx], al
+                ret
+        _020b:  mov byte ptr [bx], 00
+                ret
+        _020f:  mov dx, [bx + 03]
+                add dx, [bx + 05]
+                cmp dx, [bx + 07]
+                jle _021f
+                cmp dx, [bx + 09]
+                jl _0222
+        _021f:  neg word ptr [bx + 05]
+        _0222:  mov [bx + 03], dx
+                ret
+        _0226:  mov dx, 03dah
+        _0229:  in al, dx
+                test al, 08
+                jz _0229
+        _022e:  in al, dx
+                rcr al, 1
+                jb _022e
+                ret
+
+                _ah db 00h, 3fh, 1h, 0cch, 0h, 0ffh, 0ffh, 4ah, 0h, 4eh, 1h
+                _bl db 00h, 3fh, 1h, 0cch, 0h, 0feh, 0ffh, 4ah, 0h, 4eh, 1h
+                _bh db 00h, 3fh, 1h, 0cch, 0h, 0fdh, 0ffh, 4ah, 0h, 4eh, 1h
+                _key db ?
+
+        end start
+</pre>
+
+
+<p>It draws three dispersed horizontal stripes
+moving up and down with individual speeds (fifth offset in <code>_ah</code>, <code>_bl</code> or <code>_bh</code> array)
+in the background of the text mode. <b>Yes, it is the text mode!</b> Stripes are in red, green and blue
+spreading over a distance and eventually fading to black. When overlapping (two or three of them), the colours
+are being mixed, eg. r+b = violet or r+g+b = white; in particular one can see any rainbow spectrum for other possible combinations.
+As it is drawn in the text mode, the best impression is achieved when the screen holds some printout.</p>
+
+<figure>
+<img src="RGB_01.png" alt="">
+<figcaption>Fig. 1. Static example #1.</figcaption>
+</figure>
+<figure>
+<img src="RGB_02.png" alt="">
+<figcaption>Fig. 2. Static example #2.</figcaption>
+</figure>
+<figure>
+<img src="RGB_03.png" alt="">
+<figcaption>Fig. 3. Static example #3.</figcaption>
+</figure>
+
+<p>The program is very hardware-sensitive as it utilises specific VGA properties. Thus, to be displayed properly,
+it requires either</p>
+<p><code>$ dosbox &lt;path&gt; -machine <b>vgaonly</b></code></p>
+<p>or a genuine VGA (ISA-like) standard device. On other adapters the effect
+might be limited or even invisible.</p>
+<hr>
+
+<h2>2. gleam</h2>
+<p>A combination of sine waves called &quot;gleam&quot; due to the vivid colour blaze it uses.
+It is hard to describe the final effect verbally.
+Somebody might spot a resemblance to a phase image of pendulum which pulses periodically in two orthogonal directions.</p>
+<figure>
+<img src="GLEAM.png" alt="">
+<figcaption>Fig. 4. Gleam sinusoidal effect.</figcaption>
+</figure>
+
+<p class="edit">EDIT@2022-03-15 &ndash; this should be called IRIS, as it allegedly originates from the old DEMO by the same name!</p>
+
+<p>At the first glance, the code structure is slightly complicated because of stack pointers and several &quot;creative&quot; solutions.
+Anyway, after a while one gets the following listing:</p>
+
+<pre>
+        ; wojtek[at]bitologia.org
+        ;
+        ; 2021-03-01 disassembling GLEAM.EXE
+        ; 2021-03-02 disassembling GLEAM.EXE
+        ; 2021-03-03 disassembled! GLEAM.COM (919B)
+
+        .model small
+        .code
+                org 100h
+        start:
+
+        ; original fragments with mouse handling:
+        ;
+        ; ....:0000 ...... mov dx, DS_SEGMENT
+        ;                  mov ds, dx
+        ;                  mov bx, ss
+        ;                  sub bx, dx
+        ;                  shl bx, 1
+        ;                  shl bx, 1
+        ;                  shl bx, 1
+        ;                  shl bx, 1
+        ;                  cli
+        ;                  mov ss, dx
+        ;                  add sp, bx
+        ;                  sti
+        ;                  xor ax, ax
+        ;                  int 33
+        ;                  or ax, ax
+        ;                  jz 0033
+        ;                  cs:
+        ;                  mov word ptr [0015], 9090 ; NOP NOP
+        ;                  mov ax, 0003
+        ;                  int 33
+        ;                  mov cs:[_cx], cx
+        ;                  mov cs:[_dx], dx
+        ; ....:0033 FC     cld
+
+        _0033:  cld
+                mov ax, 13h
+                int 10h
+                cli
+                mov dx, 03c4h
+                mov ax, 0604h
+                out dx, ax
+                mov ax, 0f02h
+                out dx, ax
+                mov dx, 03d4h
+                mov ax, 0014h
+                out dx, ax
+                mov ax, 0e317h
+                out dx, ax
+                mov al, 9
+                out dx, al
+                inc dx
+                in al, dx
+                and al, 0e0h
+                add al, 7
+                out dx, al
+                mov dx, 03c8h
+                mov al, 80h
+                out dx, al
+                inc dx
+                mov cx, 180h
+                lea si, palette
+        _0067:  lodsb
+                out dx, al
+                loop _0067
+                mov ax, 0a000h
+                mov es, ax
+                lea si, sine
+        _0073:  mov dx, 03dah
+        _0076:  in al, dx
+                test al, 8
+                jz _0076
+        _007b:  in al, dx
+                test al, 8
+                jnz _007b
+                xor di, di
+                mov ah, 32h
+                mov cl, cs:[_40a]
+                mov ch, cs:[_40b]
+        _008c:  push ax
+                mov ah, 50h
+                mov dl, cs:[_408]
+                mov dh, cs:[_409]
+                xor bp, bp ; extra line
+        _0097:  mov bx, bp
+                mov al, bl
+                xor bh, bh
+                mov bl, dl
+                add al, [bx + si]
+                mov bl, dh
+                add al, [bx + si]
+                mov bl, cl
+                add al, [bx + si]
+                mov bl, ch
+                add al, [bx + si]
+                or al, 80h
+                stosb
+                add dl, 1
+                add dh, 3
+                dec ah
+                jnz _0097
+                add cl, 2
+                add ch, 1
+                pop ax
+                dec ah
+                jnz _008c
+                dec bp
+                mov bx, bp
+                xor bl, bh
+                xor bl, [di - 1]
+                xor bl, cl
+                xor bl, dl
+                add bl, ch
+                add bl, dh
+                xor bh, bh
+                mov di, 0280h
+                test bl, 8
+                jnz _00eb
+                and bl, 3
+                cmp byte ptr [bx + di], 3
+                jg _00f5
+                inc byte ptr [bx + di]
+                jmp short _00f5
+        _00eb:  and bl, 03
+                cmp byte ptr [bx + di], 0fdh
+                jl _00f5
+        _00f3:  dec byte ptr [bx + di]
+        _00f5:  mov dl, cs:[_280]
+                mov dh, cs:[_281]
+                mov cl, cs:[_282]
+                mov ch, cs:[_283]
+                add cs:[_408], dl
+                sub cs:[_409], dh
+                add cs:[_40a], cl
+                sub cs:[_40b], ch
+
+        ; ....:0115        jmp 012c
+        ;                  mov ax, 0003
+        ;                  int 33
+        ;                  or bx, bx
+        ;                  jnz 0139
+        ;                  cmp cx, cs:[_cx]
+        ;                  jnz 0139
+        ;                  cmp dx, cs:[_dx]
+        ;                  jnz 0139
+
+        _012c:  mov ah, 1
+                int 16h
+                jnz _0135
+                jmp _0073
+        _0135:  xor ah, ah
+                int 16h
+        _0139:  mov ax, 3
+                int 10h
+                xor bh, bh
+                mov dx, 1700h
+                mov ah, 2
+                int 10h
+                mov ah, 4ch
+                int 21h
+
+                _280 db 2 ; magic constants
+                _281 db 1
+                _282 db 3
+                _283 db 4
+
+                _408 db ?; 0a7h ; other magic constants
+                _409 db ?; 080h
+                _40a db ?; 03eh
+                _40b db ?; 018h
+
+                include GLEAM_S.inc
+                include GLEAM_P.inc
+        end start
+</pre>
+
+<p>and two auxiliary arrays in separate files, one with discretised sine values:</p>
+<pre>
+        sine    db 64,64,64,64,64,64,64,64,63,63,63,63,63,62,62,62
+                db 62,61,61,61,60,60,59,59,59,58,58,57,57,56,56,55
+                db 55,54,53,53,52,52,51,50,50,49,48,48,47,46,46,45
+                db 44,44,43,42,41,41,40,39,38,37,37,36,35,34,34,33
+                db 32,31,30,30,29,28,27,27,26,25,24,23,23,22,21,20
+                db 20,19,18,18,17,16,16,15,14,14,13,12,12,11,11,10
+                db 09,09,08,08,07,07,06,06,05,05,05,04,04,03,03,03
+                db 02,02,02,02,01,01,01,01,01,00,00,00,00,00,00,00
+                db 00,00,00,00,00,00,00,00,01,01,01,01,01,02,02,02
+                db 02,03,03,03,04,04,05,05,05,06,06,07,07,08,08,09
+                db 09,10,11,11,12,12,13,14,14,15,16,16,17,18,18,19
+                db 20,20,21,22,23,23,24,25,26,27,27,28,29,30,30,31
+                db 32,33,34,34,35,36,37,37,38,39,40,41,41,42,43,44
+                db 44,45,46,46,47,48,48,49,50,50,51,52,52,53,53,54
+                db 55,55,56,56,57,57,58,58,59,59,59,60,60,61,61,61
+                db 62,62,62,62,63,63,63,63,63,64,64,64,64,64,64,64
+</pre>
+
+<p>and another one with a custom palette:</p>
+
+<pre>
+        palette db 63,00,63,63,02,61,63,04,59,63,06,57,63,08,55,63
+                db 10,53,63,12,51,63,14,49,63,16,47,63,18,45,63,20
+                db 43,63,22,41,63,24,39,63,26,37,63,28,35,63,30,33
+                db 63,32,31,63,34,29,63,36,27,63,38,25,63,40,23,63
+                db 42,21,63,44,19,63,46,17,63,48,15,63,50,13,63,52
+                db 11,63,54,09,63,56,07,63,58,05,63,60,03,63,62,01
+                db 63,63,00,61,63,02,59,63,04,57,63,06,55,63,08,53
+                db 63,10,51,63,12,49,63,14,47,63,16,45,63,18,43,63
+                db 20,41,63,22,39,63,24,37,63,25,35,63,28,33,63,30
+                db 31,63,32,29,63,34,27,63,36,25,63,38,23,63,40,21
+                db 63,42,19,63,44,17,63,46,15,63,48,13,63,50,11,63
+                db 52,09,63,54,07,63,56,05,63,58,03,63,60,01,63,62
+                db 00,63,63,00,61,63,00,59,63,00,57,63,00,55,63,00
+                db 53,63,00,51,63,00,49,63,00,47,63,00,45,63,00,43
+                db 63,00,41,63,00,39,63,00,37,63,00,35,63,00,33,63
+                db 00,31,63,00,29,63,00,27,63,00,25,63,00,23,63,00
+                db 21,63,00,19,63,00,17,63,00,15,63,00,13,63,00,11
+                db 63,00,09,63,00,07,63,00,05,63,00,03,63,00,01,63
+                db 00,00,63,02,00,63,04,00,63,06,00,63,08,00,63,10
+                db 00,63,12,00,63,14,00,63,16,00,63,18,00,63,20,00
+                db 63,22,00,63,24,00,63,26,00,63,28,00,63,30,00,63
+                db 32,00,63,34,00,63,36,00,63,38,00,63,40,00,63,42
+                db 00,63,44,00,63,46,00,63,48,00,63,50,00,63,52,00
+                db 63,54,00,63,56,00,63,58,00,63,60,00,63,62,00,63
+</pre>
+
+<p>Again, it is strongly recommended to
+run it on a genuine VGA, otherwise one gets ugly glitches.</p>
+
+<hr>
+
+<h2>3. fire</h2>
+<p>The most obfuscated code. It took me a while of digging to decipher (almost) all subtleties of this one.
+It looks like it was prepared in a high-level language and then &quot;optimized&quot; by a compiler.
+There are still some tiny obscured fragments, however they do not affect the entirety of the final form.
+The original executable 816 (0x330) bytes (including header) read:</p>
+
+<table id="hex-table">
+<thead>
+<tr><th>&nbsp;</th><th>+0</th><th>+1</th><th>+2</th><th>+3</th><th>+4</th><th>+5</th><th>+6</th><th>+7</th><th>+8</th><th>+9</th><th>+a</th><th>+b</th><th>+c</th><th>+d</th><th>+e</th><th>+f</th></tr>
+</thead>
+
+<tbody>
+<tr><td>0000</td><td colspan="2">4d 5a<br><span>MZ</span></td><td>30</td><td>01</td><td>02</td><td>00</td><td>06</td><td>00</td><td>04</td><td>00</td><td>fc</td><td>0c</td><td>fc</td><td>ac</td><td>2b</td><td>09</td></tr>
+<tr><td>0010</td><td>00</td><td>40</td><td>00</td><td>00</td><td>b7</td><td>00</td><td>00</td><td>00</td><td>1c</td><td>00</td><td>00</td><td>00</td><td>08</td><td>00</td><td>00</td><td>00</td></tr>
+<tr><td>0020</td><td>63</td><td>00</td><td>00</td><td>00</td><td>ba</td><td>00</td><td>00</td><td>00</td><td>c4</td><td>00</td><td>00</td><td>00</td><td>c9</td><td>01</td><td>00</td><td>00</td></tr>
+<tr><td>0030</td><td>01</td><td>00</td><td>1d</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td></tr>
+<tr><td>0040</td><td>55<br><span class="label">@0000:</span></td><td colspan="2">89 e5</td><td colspan="2">31 c0</td><td colspan="5">9a 00 00 1d 00</td><td colspan="3">a1 02 00</td><td colspan="3" style="border-right:none;">8b 1e 04</td></tr>
+<tr><td>0050</td><td style="border-left:none;">00</td><td colspan="2">89 c1</td><td colspan="5">2e f7 26 06 00<br><span>cs: ...</span></td><td colspan="2">d1 e1</td><td colspan="2">d1 e1</td><td colspan="2">d1 e1</td><td colspan="2">00 cd</td></tr>
+<tr><td>0060</td><td colspan="2">01 ca</td><td colspan="2">01 da</td><td colspan="2">d1 e3</td><td colspan="2">d1 e3</td><td colspan="2">01 da</td><td colspan="2">00 de</td><td colspan="2">b1 05</td><td colspan="2">d3 e3</td></tr>
+<tr><td>0070</td><td colspan="2">00 de</td><td colspan="3">05 01 00</td><td colspan="3">83 d2 00</td><td colspan="3">a3 02 00</td><td colspan="4">89 16 04 00</td><td style="border-right:none;">89</td></tr>
+<tr><td>0080</td><td style="border-left:none;">e3</td><td colspan="2">89 d1</td><td colspan="4">36 f7 67 04<br><span>ss: ....</span></td><td colspan="2">89 c8</td><td colspan="2">89 d1</td><td colspan="4">36 f7 67 04<br><span>ss: ....</span></td><td style="border-right:none;">01</td></tr>
+<tr><td>0090</td><td style="border-left:none;">c8</td><td colspan="3">83 d2 00</td><td colspan="2">89 d0</td><td>c9<br><span>leave</span></td><td colspan="3" style="border-right:2px #f00 dotted;">c2 02 00<br><span>ret 0002</span></td><td>55<br><span class="label">@005a:</span></td><td colspan="2">89 e5</td><td colspan="3">b8 02 00</td></tr>
+<tr><td>00a0</td><td colspan="5">9a 00 00 1d 00</td><td colspan="3">83 ec 02</td><td colspan="2">b0 00</td><td colspan="3">ba c8 03</td><td>ee</td><td colspan="2">31 c0</td></tr>
+<tr><td>00b0</td><td colspan="3">89 46 fe</td><td colspan="2">eb 03</td><td colspan="3">ff 46 fe</td><td colspan="3">86 46 fe</td><td>99</td><td colspan="3">b9 02 00</td><td style="border-right:none;">f7</td></tr>
+<tr><td>00c0</td><td>f9</td><td colspan="3">ba c9 03</td><td>ee</td><td colspan="4">6b 46 fe 16<br><span>imul ax, [bp - 02], +16</span></td><td>99</td><td colspan="3">b9 80 00</td><td colspan="2">f7 f9</td><td style="border-right:none;">ba</td></tr>
+<tr><td>00d0</td><td colspan="2">c9 03</td><td>ee</td><td colspan="4">83 7e fe 08</td><td colspan="2">7d 0f</td><td colspan="3">8b 46 fe</td><td>99</td><td colspan="3">b9 02 00</td></tr>
+<tr><td>00e0</td><td colspan="2">f7 f9</td><td colspan="3">ba c9 03</td><td>ee</td><td colspan="2">eb 06</td><td colspan="2">b0 00</td><td colspan="3">ba c9 03</td><td>ee</td><td colspan="2" style="border-right:none;">81 7e</td></tr>
+<tr><td>00f0</td><td colspan="3" style="border-left:none;">fe 80 00</td><td colspan="2">75 c0</td><td>c9<br><span>leave</span></td><td style="border-right:2px #f00 dotted;">c3<br><span>ret</span></td><td colspan="5"><b>9a 00 00 1d 00</b><br><span>[entry point]: call ....</span></td><td>55</td><td colspan="2">89 e5</td><td style="border-right:none;">31</td></tr>
+<tr><td>0100</td><td style="border-left:none;">c0</td><td colspan="5">9a 00 00 1d 00<br><span>call ....</span></td><td>1e</td><td>07</td><td colspan="3">bf f2 00</td><td colspan="3">b9 e0 47</td><td colspan="2" style="border-right:none;">b8 00</td></tr>
+<tr><td>0110</td><td style="border-left:none;">00</td><td>fc</td><td>f3</td><td>ab</td><td colspan="3">b8 13 00</td><td colspan="2">cd 10</td><td colspan="2">31 c0</td><td colspan="2">cd 33</td><td colspan="3">a3 b2 90</td></tr>
+<tr><td>0120</td><td colspan="3">3d ff ff</td><td colspan="2">75 11</td><td colspan="3">68 03 00<br><span>mouse ...</span></td><td colspan="2">cd 33<br><span>mouse ...</span></td><td colspan="4">89 1e b8 90<br><span>mouse ...</span></td><td colspan="2" style="border-right:none;">89 0e<br><span>mouse ...</span></td></tr>
+<tr><td>0130</td><td colspan="2" style="border-left:none;">b4 90</td><td colspan="4">89 16 b6 90<br><span>mouse ...</span></td><td colspan="2">b4 2c</td><td colspan="2">cd 21</td><td colspan="4">89 0e 02 00</td><td colspan="2" style="border-right:none;">89 16</td></tr>
+<tr><td>0140</td><td colspan="2" style="border-left:none;">04 00</td><td colspan="3">e8 55 ff<br><span>call 005a</span></td><td colspan="3">b9 3f 01</td><td>51</td><td colspan="2">6a 04<br><span>push +04</span></td><td colspan="3">e8 f2 fe<br><span>call 0000</span></td><td>59</td><td style="border-right:none;">75</td></tr>
+<tr><td>0150</td><td style="border-left:none;">1a</td><td>51</td><td colspan="2">6a 04<br><span>push +04</span></td><td colspan="3">e8 e9 fe<br><span>call 0000</span></td><td>59</td><td colspan="3">bb ff 00</td><td colspan="2">f7 eb</td><td colspan="3">bb 80 00</td></tr>
+<tr><td>0160</td><td colspan="2">f7 fb</td><td colspan="3">bf 80 8e</td><td colspan="2">01 cf</td><td colspan="4">88 95 f2 00</td><td colspan="2">e2 db<br></td><td colspan="3">b9 00 46</td></tr>
+<tr><td>0170</td><td colspan="3">b8 f2 00</td><td>50</td><td colspan="2">89 c6</td><td colspan="3">bb 72 00</td><td colspan="2">d1 e3</td><td colspan="4">8b 87 0a 00</td><td style="border-right:none;">01</td></tr>
+<tr><td>0180</td><td style="border-left:none;">c6</td><td>4e</td><td colspan="2">30 e4</td><td colspan="2">30 ff</td><td colspan="4">8a 9c 3f 01</td><td colspan="4">02 9c 40 01</td><td colspan="2" style="border-right:none;">8a 84</td></tr>
+<tr><td>0190</td><td colspan="2" style="border-left:none;">41 01</td><td colspan="2">02 04</td><td colspan="2">01 c3</td><td colspan="3">c1 eb 02<br><span>shr bx, 02</span></td><td colspan="2">74 01</td><td>4b</td><td colspan="2">88 1c</td><td>4e</td><td style="border-right:none;">e2</td></tr>
+<tr><td>01a0</td><td style="border-left:none;">e5</td><td colspan="3">bb 38 00</td><td colspan="2">d1 e3</td><td colspan="4">8b 87 0a 00</td><td colspan="2">89 c2</td><td>5e</td><td colspan="3">b8 00 a0</td></tr>
+<tr><td>01b0</td><td colspan="2">8e c0</td><td colspan="3">bf 40 6a</td><td colspan="2">01 d6</td><td colspan="3">bb 00 00</td><td colspan="2">d1 e3</td><td colspan="4">8b 87 0a 00</td></tr>
+<tr><td>01c0</td><td colspan="2">01 c7</td><td colspan="3">b8 38 00</td><td colspan="3">b9 a0 00</td><td colspan="2">f3 a5</td><td colspan="3">b9 a0 00</td><td colspan="3" style="border-right:none;">81 ee 40</td></tr>
+<tr><td>01d0</td><td style="border-left:none;">01</td><td colspan="2">f3 a5</td><td>48</td><td colspan="2">75 ef</td><td colspan="6">81 3e b2 90 ff ff<br><span>cmp word ptr [09b2], 0ffffh</span></td><td colspan="2">75 17</td><td colspan="2" style="border-right:none;">b8 03<br><span>mouse ...</span></td></tr>
+<tr><td>01e0</td><td style="border-left:none;">00</td><td colspan="2">cd 33<br><span>mouse ...</span></td><td colspan="4">3b 1e b8 90<br><span>mouse ...</span></td><td colspan="2">75 15<br><span>mouse ...</span></td><td colspan="4">3b 0e b4 90<br><span>mouse ...</span></td><td colspan="2">75 0f<br><span>mouse ...</span></td><td style="border-right:none;">3b</td></tr>
+<tr><td>01f0</td><td colspan="3" style="border-left:none;">16 b6 90<br><span>mouse ...</span></td><td colspan="2">75 09<br><span>mouse ...</span></td><td colspan="2">b4 01</td><td colspan="2">cd 16</td><td colspan="2">75 03</td><td colspan="3">e9 47 ff</td><td colspan="2" style="border-right:none;">b8 03</td></tr>
+<tr><td>0200</td><td style="border-left:none;">00</td><td colspan="2">cd 10</td><td>c9<br><span>leave</span></td><td colspan="2">31 c0</td><td colspan="5">9a 10 00 1d 00</td><td>00</td><td>00</td><td>00</td><td>00</td><td>00</td></tr>
+<tr><td>0210</td><td colspan="3">ba 1f 00</td><td colspan="2">8e da</td><td colspan="4">8c 06 bc 90</td><td colspan="3">a0 f0 00</td><td colspan="3">a2 ba 90</td><td>cb<br><span>retf</span></td></tr>
+<tr><td>0220</td><td colspan="3"><b>b8 00 4c</b><br><span>mov ax, 4c00h<span></td><td colspan="2"><b>cd 21</b><br><span>int 21h</span></td><td>cb<br><span>retf</span></td><td colspan="2">.. ..</td><td colspan="2">.. ..</td><td colspan="2">.. ..</td><td colspan="2">.. ..</td><td colspan="2">.. ..</td></tr>
+<tr><td>0230</td><td colspan="2">.. ..</td><td colspan="2">.. ..</td><td colspan="2">.. ..</td><td colspan="2">05 84</td><td colspan="2">.. ..</td><td colspan="2" class="magic-const">.. ..<br><span>ds:[000a]</span></td><td colspan="2">40 01</td><td colspan="2">80 02</td></tr>
+<tr><td>0240</td><td colspan="2">c0 03</td><td colspan="2">.. 05</td><td colspan="2">40 06</td><td colspan="2">80 07</td><td colspan="2">c0 08</td><td colspan="2">.. 0a</td><td colspan="2">40 0b</td><td colspan="2">80 0c</td></tr>
+<tr><td>0250</td><td colspan="2">c0 0d</td><td colspan="2">.. 0f</td><td colspan="2">40 10</td><td colspan="2">80 11</td><td colspan="2">c0 12</td><td colspan="2">.. 14</td><td colspan="2">40 15</td><td colspan="2">80 16</td></tr>
+<tr><td>0260</td><td colspan="2">c0 17</td><td colspan="2">.. 19</td><td colspan="2">40 1a</td><td colspan="2">80 1b</td><td colspan="2">c0 1c</td><td colspan="2">.. 1e</td><td colspan="2">40 1f</td><td colspan="2">80 20</td></tr>
+<tr><td>0270</td><td colspan="2">c0 21</td><td colspan="2">.. 23</td><td colspan="2">40 24</td><td colspan="2">80 25</td><td colspan="2">c0 26</td><td colspan="2">.. 28</td><td colspan="2">40 29</td><td colspan="2">80 2a</td></tr>
+<tr><td>0280</td><td colspan="2">c0 2b</td><td colspan="2">.. 2d</td><td colspan="2">40 2e</td><td colspan="2">80 2f</td><td colspan="2">c0 30</td><td colspan="2">.. 32</td><td colspan="2">40 33</td><td colspan="2">80 34</td></tr>
+<tr><td>0290</td><td colspan="2">c0 35</td><td colspan="2">.. 37</td><td colspan="2">40 38</td><td colspan="2">80 39</td><td colspan="2">c0 3a</td><td colspan="2">.. 3c</td><td colspan="2">40 3d</td><td colspan="2">80 3e</td></tr>
+<tr><td>02a0</td><td colspan="2">c0 3f</td><td colspan="2">.. 41</td><td colspan="2">40 42</td><td colspan="2">80 43</td><td colspan="2">c0 44</td><td colspan="2" class="magic-const">.. 46<br><span>ds:[007a]</span></td><td colspan="2">40 47</td><td colspan="2">80 48</td></tr>
+<tr><td>02b0</td><td colspan="2">c0 49</td><td colspan="2">.. 4b</td><td colspan="2">40 4c</td><td colspan="2">80 4d</td><td colspan="2">c0 4e</td><td colspan="2">.. 50</td><td colspan="2">40 51</td><td colspan="2">80 52</td></tr>
+<tr><td>02c0</td><td colspan="2">c0 53</td><td colspan="2">.. 55</td><td colspan="2">40 56</td><td colspan="2">80 57</td><td colspan="2">c0 58</td><td colspan="2">.. 5a</td><td colspan="2">40 5b</td><td colspan="2">80 5c</td></tr>
+<tr><td>02d0</td><td colspan="2">c0 5d</td><td colspan="2">.. 5f</td><td colspan="2">40 60</td><td colspan="2">80 61</td><td colspan="2">c0 62</td><td colspan="2">.. 64</td><td colspan="2">40 65</td><td colspan="2">80 66</td></tr>
+<tr><td>02e0</td><td colspan="2">c0 67</td><td colspan="2">.. 69</td><td colspan="2">40 6a</td><td colspan="2">80 6b</td><td colspan="2">c0 6c</td><td colspan="2">.. 6e</td><td colspan="2">40 6f</td><td colspan="2">80 70</td></tr>
+<tr><td>02f0</td><td colspan="2">c0 71</td><td colspan="2">.. 73</td><td colspan="2">40 74</td><td colspan="2">80 75</td><td colspan="2">c0 76</td><td colspan="2">.. 78</td><td colspan="2">40 79</td><td colspan="2">80 7a</td></tr>
+<tr><td>0300</td><td colspan="2">c0 7b</td><td colspan="2">.. 7d</td><td colspan="2">40 7e</td><td colspan="2">80 7f</td><td colspan="2">c0 80</td><td colspan="2">.. 82</td><td colspan="2">40 83</td><td colspan="2">80 84</td></tr>
+<tr><td>0310</td><td colspan="2">c0 85</td><td colspan="2">.. 87</td><td colspan="2">40 88</td><td colspan="2">80 89</td><td colspan="2">c0 8a</td><td colspan="2">.. 8c</td><td colspan="2">40 8d</td><td colspan="2" class="magic-const">80 8e<br><span>ds:[00ee]</span></td></tr>
+<tr><td>0320</td><td colspan="2">.. ..</td><td colspan="2">.. ..</td><td colspan="2">.. ..</td><td colspan="2">.. ..</td><td colspan="2">.. ..</td><td colspan="2">.. ..</td><td colspan="2">.. ..</td><td colspan="2">.. ..</td></tr>
+</tbody>
+</table>
+
+<p>To guide the eye, assembly codes are framed and some of them (the crucial ones) are captioned or somehow emphasised (double dots
+at the end represent double zero words, for simplicity).</p>
+<p>There is a little problem with proper interpretation of particular fragments. For some reason original
+DEBUG fails at some points and cannot decode everything, eg. <code>6b 46 fe 16</code> or <code>c9 c3</code> or
+<code>c1 eb 02</code>. Mixing together
+DEBUG, <a href="https://github.com/yanlinlin82/enhdebug" target="_blank">Enhanced DEBUG</a>,
+<a href="http://www.hiew.ru/" target="_blank">hview</a> 5.13, and step-by-step analysis, makes it possible to rebuild
+the whole logical structure.</p>
+
+<p>In order to get pure executable binary format, several things must be done in a different way.
+The main refactorization concernes the process of all stack references being reorganized:</p>
+<pre>
+	:
+	push bp
+	mov sp, bp
+	:
+	
+	:
+	leave
+		&equiv;
+		mov sp, bp
+		pop bp
+	:
+	
+	:
+	push +04
+	:
+	... ss:[bp - 02]
+	:
+	leave
+	ret 0002
+	:
+</pre>
+<p>Then, in three places a &quot;heavy calculation&quot; on <code>bx</code>
+is being performed just to lift three &quot;magic constants&quot; out:</p>
+<pre>
+	:
+	mov bx, 0072h
+	shl bx, 1
+	mov ax, ds:[bx + 0ah] ; 8e80h at bx=00ah
+	:
+	mov bx, 0038h
+	shl bx, 1
+	mov ax, ds:[bx + 0ah] ; 4600h at bx=07ah
+	:
+	mov bx, 0000h
+	shl bx, 1
+	mov ax, ds:[bx + 0ah] ; 0000h at bx=0eeh
+	:
+</pre>
+<p>This can be replaced with immediate loading: <code>mov ax, ....h</code> and even further simplfied - see the source below.
+These constants are not really so magic, because they are somehow related to the array at the end of the file.
+Actually, this array is the only unexplained thing, and most likely it has something to do with initialization of fire seeds.
+The constants are just offsets of memory blocks being adequatly rearranged to mimic the process of combustion.
+The original flames flow on the screen periodically leftward (once reach the left edge they reappear on the right side).
+After disassembling this is no longer the case, as the array is not engaged into calculations anymore.</p>
+
+<figure>
+<img src="FIRE.png" alt="">
+<figcaption>Fig. 5. Fire.</figcaption>
+</figure>
+
+<p>However, the final effect cannot be simple distinguished from the original one, if at all, and on every run it starts with
+a diffrent pattern of flames.</p>
+
+<pre>
+        ; 2021-03-05
+        ; 2021-03-08
+        ; 2021-03-10 disassembled
+        ; 2021-03-11 fixed and simplified
+        ;
+        ; wojtek[at]bitologia.org
+
+        .model tiny
+        .code
+        .286
+                org 100h
+        start:
+        _00b7:  cld
+                xor ax, ax
+                mov di, 46f2h
+                mov cx, 56*320
+                repz stosw
+                mov di, 6a40h
+                mov cx, 56*320
+                repz stosw
+
+                mov ax, 0a000h
+                mov es, ax
+                mov ax, 13h
+                int 10h
+
+        _00f6:  mov ah, 2ch
+                int 21h
+                mov [_0002], cx
+                mov [_0004], dx
+                call _005a
+        _0105:  mov cx, 013fh
+        _0108:  push cx
+                call _0000
+                pop cx
+                jnz _012b
+                push cx
+                call _0000
+                pop cx
+                mov bx, 00ffh
+                imul bx
+                mov bx, 0080h
+                idiv bx
+                mov di, 8e80h
+                add di, cx
+                mov [di + 00f2h], dl
+        _012b:  loop _0108
+                mov cx, 4600h + 0280h ; + 280h(640d) hide artifacts in two upper lines
+                mov si, 00f2h + 8e80h - 1
+                xor ah, ah
+                xor bh, bh
+        _0146:  mov bl, [si + 013fh]
+                add bl, [si + 0140h]
+                mov al, [si + 0141h]
+                add al, [si]
+                add bx, ax
+                shr bx, 2
+                jz _015c
+                dec bx
+        _015c:  mov [si], bl
+                dec si
+                loop _0146
+                mov di, 6a40h + 320*3 ; fill three bottom lines
+                mov si, 00f2h + 4600h
+                mov ax, 0038h
+
+        ; (si) 46f2h + (38h x 140h) = 8cf2h
+        ; (di) 6a40h + (38h x 140h) x 2 = f640h
+
+        _0185:  mov cx, 00a0h
+                repz movsw
+                mov cx, 00a0h
+                sub si, 0140h
+                repz movsw
+                dec ax
+                jnz _0185
+        _01b5:  mov ah, 01
+                int 16h
+                jnz _01be
+                jmp short _0105
+        _01be:  mov ax, 0003
+                int 10h
+                ret
+                ;mov ah, 4ch
+                ;int 21h ; ret
+
+        _0000:  ; fire seeds (sparks)
+                mov ax, [_0002]
+                mov bx, [_0004]
+                mov cx, ax
+        ;       mul word ptr ds:[0006]
+                shl cx, 1
+                shl cx, 1
+                shl cx, 1
+                add ch, cl
+                add dx, cx
+                add dx, bx
+                shl bx, 1
+                shl bx, 1
+                add dx, bx
+                add dh, bl
+                mov cl, 05
+                shl bx, cl
+                add dh, bl
+                inc ax
+                adc dx, +00
+                mov [_0002], ax
+                mov [_0004], dx
+                mov cx, dx
+                mov bx, 0004
+                mul bx
+                mov ax, cx
+                mov cx, dx
+                mul bx
+                add ax, cx
+                adc dx, +00
+                mov ax, dx
+                ret
+
+        _005a:  ; set palette
+                xor al, al
+                mov dx, 03c8h
+                out dx, al
+                xor ax, ax
+                mov [index], ax
+                jmp short _0078
+        _0075:  inc word ptr [index]
+        _0078:  mov ax, [index]
+                cwd
+                mov cx, 0002
+                idiv cx
+                mov dx, 03c9h
+                out dx, al
+                imul ax, [index], +16h
+                cwd
+                mov cx, 00ffh ; color of fire
+                              ; 0080 = orange (original)
+                              ; 00ff = red
+                              ; 002a = green
+                idiv cx
+                mov dx, 03c9h
+                out dx, al
+                cmp word ptr [index], +08
+                jge _00a8
+                mov ax, [index]
+                cwd
+                mov cx, 0002
+                idiv cx
+                mov dx, 03c9h
+                out dx, al
+                jmp short _00ae
+        _00a8:  mov al, 00
+                mov dx, 03c9h
+                out dx, al
+        _00ae:  cmp word ptr [index], 0080h
+                jnz _0075
+                ret
+
+                _0002 dw ? ; clock data (for "randomness")
+                _0004 dw ? ; clock data
+                _0006 db ?
+
+                index dw ?
+
+        end start
+</pre>
+
+<hr>
+
+<p>All codes have been successfully compiled and tested on: DOSBOX
+and real 80286, 80386, 80486, P133-S, P166MMX and K6-2/350 machines equipped with different standard VGA cards.
+When run on DOSBOX remember to emulate real VGA:</p>
+<pre>
+$ DOSBOX . -machine <b>vgaonly</b>
+</pre>
+<hr>
+<p>See also <a href="../mars/index.html">MARS.EXE</a>.</p>
+
