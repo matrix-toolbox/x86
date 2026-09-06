@@ -1,0 +1,234 @@
+;-------------------------------------------------------------------------------
+; 2021-02-11 mouse is responding!
+; 2021-02-12 mask is almost ready
+; 2021-02-13 mask is ready!
+;
+;
+; https://thestarman.pcministry.com/asm/index.html
+;
+; wojtek[at]bitologia.org
+;-------------------------------------------------------------------------------
+.model tiny
+.code
+        org 100h
+start:
+
+ ; TODO#2 : turn off 9^th  column!
+
+
+        xor ax, ax
+        int 33h
+        cmp ax, 0
+        ja mouse_present
+        lea dx, MOUSE_ERROR
+        mov ah, 9
+        int 21h
+        mov ah, 4ch
+        int 21h
+mouse_present:
+        mov ax, 00003h    ; turn on text mode
+        int 10h
+        mov ah, 01h       ; hide cursor
+        mov cx, 2607h
+        int 10h
+
+        mov al, 10h
+        mov dx, 3c0h
+        out dx, al
+        in al, dx
+        and al, 00000100b
+        out dx, al
+
+
+        mov ax, 4         ; reset mouse position
+        xor cx, cx
+        xor dx, dx
+        int 33h
+        mov bx, 0ffffh      ; any value that AX cannot reach
+        call RESET_MOUSE
+main_loop:
+        call REFRESH_MOUSE
+;        and cx, 11111110b ; cast to even (not necessary for some reason...)
+;        and ax, 11111110b
+;;mov cs:[maaxx], ax
+        push cx
+        push ax
+        mov dx, 40d;;;;;80d
+        mul dx
+        add ax, cx        ; cx = horizontal
+        mov cl, 3
+        shl ax, cl
+
+   mov cs:[aaxx], ax
+;;;        call RELOAD_ASCII
+;;;        mov ax, 0b800h    ; text mode segment
+;;;        mov es, ax
+
+        pop ax
+
+      pop cx
+      mov dx, 40d;;;;;80d
+      mul dx
+      add ax, cx        ; cast 2d to 1d
+   ;;;;; push cx ; time-bomb , do NOT use it!! :)
+
+
+    cmp ax, bx
+    je skip_refresh
+    mov bx, ax
+    push ax
+
+push cx
+call RELOAD_ASCII
+pop cx
+mov ax, 0b800h
+mov es, ax
+
+;-------------------------------------------------------------------------------
+        xor di, di
+        xor ax, ax    ;; TODO remove only MASK
+        mov cx, 4000
+        cld
+        rep stosw         ; refresh screen
+;-------------------------------------------------------------------------------
+    pop ax
+;;;skip_refresh:
+
+;        pop ax
+   ;    pop cx
+   ;    mov dx, 80d
+   ;    mul dx
+   ;    add ax, cx        ; cast 2d to 1d
+
+
+
+
+;-------------------------------------------------------------------------------
+;    push bx
+;    mov bx, offset cmap
+;load01: mov es:[di], al ; instead of ASCII_MAP - just take consecutive integers from 0 to 240d
+;        inc al
+;        inc di
+;    mov dx, ds:[bx + si]
+;        mov es:[di], dx; ASCII attribute
+;    inc bx
+;        inc di
+;        loop load01
+;    pop bx
+;        pop di
+;        pop cx
+;        add bx, 10d ; draw (jump to) next line (offset) (30 for "3")
+;    add si, 80d; (240 for "3")
+;------------------------------------------------------------------------------
+
+
+        mov cx, 256d      ; mask size = 16*16
+        mov di, ax
+        xor si, si
+        xor dl, dl
+    push cx
+    mov cl, 1
+    shr ax, cl ; trzeba tego skurwysyna podzielic przez DWA
+    pop cx
+      
+    push bx
+    mov bx, offset cmap
+    add bx, ax; cs:[maaxx]
+
+draw_mask:
+        inc si
+        mov es:[di], byte ptr dl
+        inc di
+    mov ax, ds:[bx+si-1]
+        mov es:[di], ax; byte ptr 2
+        inc di
+        cmp si, 16d
+        jl next_line
+        xor si, si
+        add bx, 80d
+        add di, 128d      ; = 160 - 2*16 = 128
+next_line:
+        inc dl
+        loop draw_mask
+    pop bx
+skip_refresh:
+
+        in al, 60h
+        cmp al, 1
+        jne main_loop
+        mov ax, 3
+        int 10h
+        mov ax, 004ch
+        int 21h
+
+MOUSE_ERROR DB 'mouse driver not found!', '$'
+aaxx dw  ?
+;;maaxx dw ?
+;-------------------------------------------------------------------------------
+RESET_MOUSE proc
+    push bx
+        mov ax, 0fh       ; reset mickey
+        mov cx, 4d
+        mov dx, 32d
+        int 33h
+
+        mov ax, 7
+        mov cx, 0d        ; min horizontal position
+        mov dx, 514d      ; max horizontal position
+        int 33h
+        mov ax, 8
+;;        mov cx, 0d        ; min vertical position
+        mov dx, 75d       ; max vertical position
+        int 33h
+    pop bx
+        ret
+RESET_MOUSE endp
+;-------------------------------------------------------------------------------
+REFRESH_MOUSE proc
+    push bx
+        mov ax, 3         ; get mouse status (and position)
+        int 33h
+
+        mov ax, dx        ; dx -&gt; ax = vertical
+        mov dx, cx        ; mickey recalibration
+        mov cl, 1         ; mickey recalibration
+        shr ax, cl        ; mickey recalibration
+        mov cl, 2         ; mickey recalibration
+        shr dx, cl        ; mickey recalibration
+        mov cx, dx        ; mickey recalibration
+    pop bx
+        ret
+REFRESH_MOUSE endp
+;-------------------------------------------------------------------------------
+RELOAD_ASCII proc
+    push bx
+        push cs
+        pop ds
+        push cs
+        pop es            ; unify all segments
+        mov bp, offset LINE_01
+        add bp, cs:[aaxx];  ;;;ax        ; extra offset from mouse position
+        xor dx, dx
+        mov cx, 16d       ; number of turns
+next_16block:
+        push cx
+        mov cx, 16d       ; number of characters in a single turn
+        mov bx, 1000h     ; vertical size of the ASCII matrix
+        mov ax, 1100h
+        int 10h
+        add dx, 16d       ; redefine next block of 16 ASCII
+        pop cx
+        add bp, 1280d     ; data offset: 80x16 = 1280d
+        loop next_16block
+    pop bx
+        ret
+RELOAD_ASCII endp
+;-------------------------------------------------------------------------------
+
+; data from 1- or 3-liner:
+; each DB-line has 16 bytes for a single ASCII
+; each LINE_XX contains 80 new "character" (DB-lines)
+;
+; generated by ASCII.c -- see documentation
+
+

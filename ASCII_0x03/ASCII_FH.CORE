@@ -1,0 +1,110 @@
+;-------------------------------------------------------------------------------
+; 2021-02-09 wojtek[at]bitologia.org
+; 2021-02-10
+; vertical stripes (ASCII_FH)
+;-------------------------------------------------------------------------------
+
+.model tiny
+.code
+        org 100h
+start:  mov ax, 0b800h
+        mov es, ax
+        xor di, di
+        mov ax, 00ffh ; standard CLS (mov ax, 0003h) fills screen with 0
+        mov cx, 4000  ; which is replaced by something during the procedure
+        cld           ; thus, we must clean the screen with another blank
+        rep stosw     ; ASCII=255 instead of ASCII=0
+
+        mov ah, 01h   ; "hide" cursor
+        mov cx, 2607h
+        int 10h
+
+        mov al, 10h
+        mov dx, 3c0h
+        out dx, al
+        in al, dx
+        and al, 00000100b ; do not copy 9th line of ASCII between C0h and DFh
+        out dx, al
+
+esc_:   mov cx, 8d   ; 8 FRAMES (each FRAME is 10 vertical lines of 25 chars. = 250) (250x8=2000)
+        xor bx, bx
+;        xor dx, dx
+        xor si, si
+FRAME:  call draw_FRAME
+        loop FRAME
+        in al, 60h    ;
+        cmp al, 1     ;
+        jne esc_      ; loop until ESC-pressed
+        mov ax, 0003h
+        int 10h
+        mov ax, 4c00h
+        int 21h
+;------------------------------------------------------------------------------
+draw_FRAME proc
+
+        push cx
+        push bx
+        push cs
+        pop ds
+        push cs
+        pop es
+        mov bp, offset FRAME_01
+        add bp, si
+add si, 4000d
+        mov cx, 250d
+        mov dx, 0d
+        mov bx, 1000h
+        mov ax, 1100h
+        int 10h
+
+        mov ax, 0b800h
+        mov es, ax
+        pop bx
+        mov di, bx ; frame offset
+        xor al, al
+load_:  mov es:[di], al ; instead of ASCII_MAP...
+        inc al
+        inc di
+        mov byte ptr es:[di], 2  ; ASCII attribute
+        add di, 15d
+        loop load_
+
+        call slow_down
+        call drop_line
+
+        inc bx ; next frame offset
+        inc bx
+        pop cx
+        ret
+draw_FRAME endp
+;------------------------------------------------------------------------------
+drop_line proc
+        push cx
+        push cs
+        pop ds
+        mov ax, 0b800h
+        mov es, ax
+        mov di, bx
+        mov cx, 250d
+clear:  inc di                  ; skip ASCII whatever it is
+        mov byte ptr es:[di], 0 ; but reset attribute to zero
+        add di, 15              ; (ASCII can be anything, because becomes invisible)
+        loop clear
+        pop cx
+        ret
+drop_line endp
+;------------------------------------------------------------------------------
+slow_down proc
+        push cx
+        push dx
+        mov cx, 00000h
+        mov dx, 0ff10h ; wait CX:DX RTC-microseconds
+        mov ah, 86h
+        int 15h
+        pop dx
+        pop cx
+        ret
+slow_down endp
+
+
+

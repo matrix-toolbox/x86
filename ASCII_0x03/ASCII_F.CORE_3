@@ -1,0 +1,133 @@
+;-------------------------------------------------------------------------------
+; 2021-01-30 single line
+; 2021-02-05 fix cursor appearance (just hide it)!, proper CLS and display
+;            three lines at once to intensify the effect of an old CRT
+; "full picture" in text mode
+; wojtek[at]bitologia.org
+;-------------------------------------------------------------------------------
+
+.model tiny
+.code
+        org 100h
+start:  mov ax, 0b800h
+        mov es, ax
+        xor di, di
+        mov ax, 00ffh ; standard CLS (mov ax, 0003h) fills screen with 0
+        mov cx, 4000  ; which is replaced by something during the procedure
+        cld           ; thus, we must clean the screen with another blank
+        rep stosw     ; ASCII=255 instead of ASCII=0
+
+        mov ah, 01h   ; "hide" cursor
+        mov cx, 2607h
+        int 10h
+
+        mov al, 10h
+        mov dx, 3c0h
+        out dx, al
+        in al, dx
+        and al, 00000100b ; do not copy 9th line of ASCII between C0h and DFh
+        out dx, al
+
+esc_:   mov cx, 25d   ; 25 lines (80 columns) in 0x03 DOS text mode
+        xor bx, bx
+draw:   call draw_line_01
+        loop draw
+        in al, 60h    ;
+        cmp al, 1     ;
+        jne esc_      ; loop until ESC-pressed
+        mov ax, 0003h
+        int 10h       ; restore standard ASCII set
+        mov ax, 4c00h
+        int 21h       ; back to DOS
+;------------------------------------------------------------------------------
+draw_line_01 proc
+        push cx
+        push di
+;       push si       ; TODO: check carefully whether SI should be preserved!
+        push cs
+        pop ds
+        push bx
+        push cs
+        pop es
+        mov bp, offset LINE_01  ; start with LINE_01 and skip 80 bytes every loop (~mod 25)
+
+        ; starting with LINE_01 one must jump to the next LINE_02 and so on...
+        ; by skipping 80*16 bytes every time
+        ; every jump is actually controlled by BX which increases by 10d
+        ; hence, it is enough to multiply every offset by 128
+        ; that is to shift BX by 7 to the left and finally add the result to BP
+        ; ...
+        mov cl, 7
+        shl bx, cl
+        add bp, bx
+        ; ... easy :)
+
+        mov cx, 240d; 80d######################## MUST BE PARAMETRIZED!
+        mov dx, 0d
+        mov bx, 1000h
+        mov ax, 1100h
+        int 10h
+        pop bx
+        mov ax, 0b800h
+        add ax, bx
+        mov es, ax
+        xor di, di
+        mov cx, 240d; 80d;####################### MUST BE PARAMETRIZED!
+        xor al, al
+load01: mov es:[di], al ; instead of ASCII_MAP
+                        ; - just take consecutive integers from 0 to 80d
+        inc al
+        inc di ; skip the byte of attributes (responsible for colours
+               ;                              -- for a future use maybe)
+        mov BYTE ptr es:[di], 7 ; ASCII attribute
+        inc di
+        loop load01
+;       pop si
+        pop di
+        call slow_down
+        call drop_line
+        pop cx
+        add bx, 10d ; draw (jump to) next line (offset)
+        ret
+draw_line_01 endp
+;------------------------------------------------------------------------------
+drop_line proc
+        push cx
+        push di
+        push cs
+        pop ds
+        mov ax, 0b800h
+        add ax, bx
+        mov es, ax
+        xor di, di
+        mov cx, 80d
+clear:  mov al, 255d
+        mov es:[di], al
+        inc di
+        inc di
+        loop clear
+        pop di
+        pop cx
+        ret
+drop_line endp
+;------------------------------------------------------------------------------
+slow_down proc
+        push cx
+        xor cx, cx
+        mov dx, 4510h ; wait CX:DX RTC-microseconds
+        mov ah, 86h
+        int 15h
+        pop cx
+        ret
+slow_down endp
+
+;------------------------------------------------------------------------------
+; each line in LINE_XX is a single ASCII character
+; (every byte is an 8-bit row times 16 of them which gives a matrix 8x16
+; of std. ASCII char.)
+; 80 in total in a single row, and 25 in vertical ==> #(SCREEN)=2000
+
+; ALL BELOW SHOULD BE CREATED AUTOMATICALLY BY ASCII_F.c
+
+; end start ;; here or after "... CD 21"?
+

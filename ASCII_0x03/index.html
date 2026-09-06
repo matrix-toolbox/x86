@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en_EN">
+<title>x86 &bull; ASCII</title>
+<meta charset="utf-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+<link rel="icon" href="../x86.ico">
+<link rel="stylesheet" href="../x86.css">
+
+
+<p>updated at 2021-02-16 by wojtek at bitologia.org (<a href="../index.html">index</a>)</p>
+<hr>
+
+<h1>an attempt to rendere graphics in the <code>0x03</code> (<code>80x25</code>) text mode</h1>
+
+<p>TOC</p>
+<ul>
+<li><a href="#static-reduced-image">static</a> reduced image</li>
+<li><a href="#dynamic-full-image">dynamic</a> &quot;full&quot; image</li>
+<li><a href="#color-attributes">color</a> attributes</li>
+<li><a href="#mouse-support">mouse</a> support</li>
+<li>compilation <a href="#compilation-summary">summary</a></li>
+</ul>
+
+<hr>
+
+<h2 id="static-reduced-image">static reduced image</h2>
+
+<p>Standard DOS text mode contains 2000 = 80&times;25 characters on the screen,
+while the (extended) ASCII set comprises of only 256 different characters.
+Thus, one has to significantly simplify an image to be reconstructed
+with such limited typographical resources.</p>
+
+<p id="GIMP-procedure">Possible procedure (should be easily rewritten in a batch mode) in <a href="https://en.wikipedia.org/wiki/GIMP" target="_blank">GIMP</a>:</p>
+
+<ol>
+<li>load image - try to pick the one of dimensions close to 4:3 ratio</li>
+<li>crop and/or desaturate if needed</li>
+<li>rescale to 640&times;400 (72.000 px/in)</li>
+<li>rotate pi/2 to get vertical stripes in the next step</li>
+<li><b>Filters</b> &rarr; <b>Distorts</b> &rarr; <b>Engrave</b> and tune <b>Height</b> parameter</li>
+<li>rotate -pi/2 to restore original orientation</li>
+<li><b>File</b> &rarr; <b>Export As...</b> &rarr; <b>*.<u>data</u></b> with RGB Save Type &rarr; <b>Standard(R, G, B)</b> and
+<b>R, G, B (normal)</b></li>
+</ol>
+
+<p>Instead of engraving, one can use 1-bit palette with appropriate
+<a href="https://en.wikipedia.org/wiki/Dither" target="_blank">dithering</a> - no rules, just experiment!</p>
+
+<p>Sanity check: the output must have exactly <b>768000</b> = 3&times;640&times;400 bytes
+and might look like this:</p>
+<pre>
+00000000 <b>FF FF FF 00 00 00 00 00 00 FF FF FF 00 00 00 00 00 00 FF FF FF 00 00 00</b>
+00000018 <b>00 00 00 FF FF FF 00 00 00 00 00 00 FF FF FF 00 00 00 00 00 00 FF FF FF</b>
+00000030 <b>00 00 00 00 00 00 FF FF FF 00 00 00 00 00 00 FF FF FF 00 00 00 00 00 00</b>
+:        :
+000BB7E8 <b>00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00</b>
+</pre>
+<p>where each consecutive triplet of bytes, eg. FF FF FF, 
+corresponds to the RGB pattern - here monochromatic.
+Such sequence, after pixel by pixel RGB decoding onto 640&times;400 array,
+reveals a 1-bit color picture:</p>
+<img src="ASCII_image_01.png" alt="">
+<p>More samples <a href="ASCII_image_02.png" class="local-link">here</a>,
+<a href="ASCII_image_03.png" class="local-link">here</a>,
+<a href="ASCII_image_04.png" class="local-link">here</a>, and
+<a href="ASCII_image_05.png" class="local-link">here</a>.</p>
+
+<p>Picture is rotated before engraving because vertical strips
+(GIMP's engravings are done only horizontally) fit much better for the final effect when graphics is replaced by text.
+Namely, the VGA standard displays characters with a slight
+horizonal break between each column. That is why vertical stripes might obscure this nuisance.
+Besides, it looks much better than horizontal ones.</p>
+
+<p>Once image is converted into the *.data file,
+use the <span class="DEPRECATED"><a href="GIMP_RGB_data_converter.sh" class="local-link">shell</a></span> C function:
+<code><a href="#compilation-summary">data_reduce24()</a></code>, the purpose of which is:</p>
+<ol>
+<li>converting binary data to text &equiv; exchanges 0x00 to ASCII(48) = 0 and 0xFF to ASCII(49) = 1 <span class="DEPRECATED">(to facilitate further operating in the shell)</span>,</li>
+<li>flattening triplets 000 &rarr; 0 and 111 &rarr; 1,</li>
+<li>converting octets of 0s and 1s treated as binary strings to decimal representation and stores as another binary file.</li>
+</ol>
+
+<p>The size of the last output from the script is 32000 bytes that is 2000&times;16 numbers.
+This is in agreement with the image size 640&times;400 that corresponds to 2000 subarrays of size 16&times;8
+which are just ASCII matrices.
+<b>Actually, the resolution in the text mode reads 720&times;400 not 640&times;400.</b> The additional 80 pixels
+comes from the method the VGA standard works: after each character an additional 1-pixel-width
+line is drawn. With one exception; ASCII table has a sequence of special sixteen characters
+between C0h and DFh. When displayed in the text mode, they reproduce their last pixel
+column (only set bits) that results with a ninth one that overlays the
+background (making the text a sort of continuous, which can produce a nice effect when preparing frames, array, etc.).
+This &quot;feature&quot; can be handled by the port 03Ch of VGA, see the
+<a href="https://books.google.pl/books?id=ySO4VbD0-mcC&pg=PT324&lpg=PT324&dq=%229*16%22+ascii+dos+int10&source=bl&ots=rPQVzpMzfQ&sig=ACfU3U2q_RMxH_NqIatrzPrCpzEcOQyF5g&hl=pl&sa=X&ved=2ahUKEwj3oc_fndruAhWGjaQKHXtCC2kQ6AEwA3oECAkQAg#v=onepage&q=%229*16%22%20ascii%20dos%20int10&f=false" target="_blank">article</a> of
+Martin Weisman in PC Mag (1990-01-30).</p>
+
+<p>A simple formula:<p>
+<p>80*16*(y - 1) + x + 80*j for j in [0, 15]</p>
+<p>can be used to retrieve a byte mask from the reduced array at the (x, y)-position
+for x in [1, 80] and y in [1, 25].</p>
+
+<p>Indexing example:</p>
+
+<table>
+<tr><td>&nbsp;</td><td>x=<b>1</b></td><td><b>2</b></td><td><b>3</b></td><td>...</td><td><b>30</b></td><td>...</td><td><b>80</b></td></tr>
+<tr><td style="text-align:right;">y=<b>1</b></td><td>&square;</td><td>&square;</td><td>&square;</td><td>...</td><td>&square;</td><td>...</td><td style="border:1px solid #000;">80<br>:<br>1280</td></tr>
+<tr><td style="text-align:right;"><b>2</b></td><td>&square;</td><td>&square;</td><td>&square;</td><td>...</td><td>&square;</td><td>...</td><td>&square;</td></tr>
+<tr><td style="text-align:right;"><b>3</b></td><td>&square;</td><td>&square;</td><td>&square;</td><td>...</td><td>&square;</td><td>...</td><td>&square;</td></tr>
+<tr><td style="text-align:right;"><b>4</b></td><td>&square;</td><td>&square;</td><td style="border:1px solid #000;">3841<br>:<br>5043</td><td>...</td><td>&square;</td><td>...</td><td>&square;</td></tr>
+<tr><td style="text-align:right;">:</td><td>:</td><td>:</td><td>:</td><td>...</td><td>&square;</td><td>...</td><td>:</td></tr>
+<tr><td style="text-align:right;"><b>17</b></td><td>&square;</td><td>&square;</td><td>&square;</td><td>...</td><td>&square;</td><td>...</td><td>&square;</td></tr>
+<tr><td style="text-align:right;">:</td><td>:</td><td>:</td><td>:</td><td>...</td><td>&square;</td><td>...</td><td>:</td></tr>
+<tr><td style="text-align:right;"><b>25</b></td><td>&square;</td><td>&square;</td><td>&square;</td><td>...</td><td>&square;</td><td>...</td><td style="border:1px solid #000;">30800<br>:<br>32000</td></tr>
+</table>
+
+<h3>ASCII.c</h3>
+<p>The C function
+checks whether there is a possibility to reconstruct the image out of 256 different ASCII characters or not,
+and creates an assembly data section, eg.
+<pre>
+NEW_ASCII DB  10,  43,  43, 213,  40,  43,  12,  40,  30,  20,  20, 120, 140, 104,  50,  10 ; char 1
+          DB  10,  30,  10,  30, 102, 120,  30,  10,  10,  10,  30,   0,   0,  10,  10,   0 ; char 2
+:
+</pre>
+if it is the case.
+Actually, the input picture should not be much complicated to be presented using just 256 different characters.
+The following <b>text-picture</b></p>
+<img src="ASCII_image_08.png" alt="">
+
+
+<p>has been prepared from 250 different ASCII characters (see the cursor in the upper-left...). However,
+for most images the procedure of converting to the full ASCII table is rather impossible.
+This problem can be solved using different display methods.</p>
+
+<!--p>Technical note. Assembly file can be prepared using standard
+<a href="BITOLOGY.ASM">mnemonics</a>
+(we usually use
+<a href="https://en.wikipedia.org/wiki/Turbo_Assembler" target="_blank">TASM 2.0</a> under DOS 5.00).
+But due to the fact that there is only one actual variable in the file - the number
+of changed ASCII characters, it provides a possibility to prepare already compiled
+DOS binary *.COM file. Playing a little with
+<a href="https://en.wikipedia.org/wiki/Endianness" target="_blank">endiannes</a>,
+it is straightforward to prepare such binaries with help of <code>hexdump</code> or
+<code>debug</code>:</p>
+<pre>
+C:\ASCII>debug bitology.com
+-u
+<span class="DEPRECATED">11CB:0100 B80300   MOV    AX,0003</span> -- in the latest version these lines should be replaced with modern ones
+<span class="DEPRECATED">11CB:0103 CD10     INT    10</span>      -- see <a href="FULL.CORE_1" class="local-link">FULL.CORE_1</a> or <a href="FULL.CORE_3" class="local-link">FULL.CORE_3</a>
+11CB:0105 0E       PUSH   CS
+11CB:0106 07       POP    ES
+11CB:0107 BD1509   MOV    BP,0915 -- offset of ASCII_NEW (dynamic size)
+11CB:010A B9C500   MOV    CX,<b>00C5</b> -- <b>the &quot;variable&quot;</b>
+11CB:010D BA0000   MOV    DX,0000
+11CB:0110 BD0010   MOV    BX,1000
+11CB:0113 B80011   MOV    AX,1100
+11CB:0116 CD10     INT    10
+11CB:0118 57       PUSH   DI
+11CB:0119 56       PUSH   SI
+11CB:011A 0E       PUSH   CS
+11CB:011B 1F       POP    DS
+11CB:011C B800B8   MOV    AX,B800
+11CB:011F 8EC0     MOV    ES,AX
+11CB:0121 BE4501   MOV    SI,0145 -- offset of ASCII_MAP (fixed size)
+11CB:0124 33FF     XOR    DI,DI
+11CB:0126 B9D007   MOV    CX,07D0
+11CB:0129 8A04     MOV    AL,[SI]
+11CB:012B 26       ES:
+11CB:012C 8005     MOV    [DI],AL
+11CB:012E 46       INC    SI
+11CB:012F 47       INC    DI
+11CB:0130 47       INC    DI
+11CB:0131 E2F6     LOOP   0129
+11CB:0133 5E       POP    SI
+11CB:0134 5F       POP    DI
+11CB:0135 E460     IN     AL,60
+11CB:0137 3C01     CMP    AL,01
+11CB:0139 75FA     JNZ    0135
+11CB:013B B80300   MOV    AX,0003
+11CB:013E CD10     INT    10
+11CB:0140 B8004C   MOV    AX,4C00
+11CB:0143 CD21     INT    21
+11CB:0145 0000     DB ... ----------------- static arrays start here
+11CB:0147 0000     DB ... ----------------- first one has fixed size
+          :                                 so the size of the latter does not introduce any information
+          :
+</pre-->
+
+
+<h2 id="dynamic-full-image">dynamic &quot;full&quot; image<a class="top-arrow" href="#top">&uarr;</a></h2>
+
+<h3>ASCII_F.c</h3>
+<p>The improved procedure reproduces all the above steps with a slight difference
+that there is no limitation for ASCII characters.</p>
+<p>Every (8&times;16)-component &quot;line&quot; of the input picture is translated
+to a set of 80 ASCII characters. There are 25 such lines in total.
+Assembly script redefines a sequence of the first 80 ASCII characters, displays them and
+immediately erases. Then it redefines next 80 characters, displays them...
+and repeats the procedure for each of 25 lines.
+Adjusting the speed of jump between each line, one can observe a smooth effect
+of flowing the picture which resembles old CRT monitors being refreshed when
+filmed on camera. As a result one gets:</p>
+
+<img src="KOT_1.gif" alt="">
+
+<p>It is enough to increase the number of characters displayed in one turn from 80d to 240d (three lines) to
+get a much better visual effect:</p>
+
+<img src="KOT_3.gif" alt="">
+<img src="FAUN.gif" alt="">
+
+<h3>B2 (animation)</h3>
+<p>As a side project, this can be used to prepare a simple <a href="../B2/index.html" class="local-link">animation</a> over three lines.</p>
+
+<h3>ASCII_FH.c</h3>
+<p>Another modification - horizontal lines.</p>
+
+<h2 id="color-attributes">color attributes<a class="top-arrow" href="#top">&uarr;</a></h2>
+<h3>ASCII_FC.c</h3>
+
+<p>ASCII attributes can be adjusted to reveal a colour of the individual &quot;pixel&quot; &equiv; ASCII.
+An original image rescaled to 80&times;25 with 16 colours and exported as *.data
+serves a (real) pixel to ASCII-attribute (1-to-1) mapping.
+Then, the GIMP procedure remains as <a href="#GIMP-procedure" class="local-link">as above</a> with the same picture
+of original size 640&times;400 (1-bit-dithering...).
+Not every picture fits for this. One must try to pick ones that represent a single well-contrasted object
+which is properly distinguished from the uniform background.
+
+</p>
+<p>Standard VGA offers 16 colours:</p>
+<pre>
+unsigned char VGA_color[16][3] = {
+	{0x00, 0x00, 0x00}, //  0 black
+	{0x00, 0x00, 0x80}, //  1 navy
+	{0x00, 0x80, 0x00}, //  2 green
+	{0x00, 0x80, 0x80}, //  3 teal
+	{0x80, 0x00, 0x00}, //  4 maroon
+	{0x80, 0x00, 0x80}, //  5 purple
+	{0x80, 0x80, 0x00}, //  6 olive
+	{0xc0, 0xc0, 0xc0}, //  7 silver
+	{0x80, 0x80, 0x80}, //  8 gray
+	{0x00, 0x00, 0xff}, //  9 blue
+	{0x00, 0xff, 0x00}, // 10 lime
+	{0x00, 0xff, 0xff}, // 11 aqua/cyan
+	{0xff, 0x00, 0x00}, // 12 red
+	{0xff, 0x00, 0xff}, // 13 fuchsia/magenta
+	{0xff, 0xff, 0x00}, // 14 yellow
+	{0xff, 0xff, 0xff}  // 15 white
+};
+</pre>
+<p>which can be neatly visalised on the RGB cube below:</p>
+
+<div>
+  <svg width="600px" height="600px">
+    <rect width="100%" height="100%" fill="white" />
+
+
+
+  <line x1="300" y1="60" x2="310" y2="310" stroke="#cccccc" />
+  <line x1="310" y1="310" x2="120" y2="440" stroke="#cccccc" />
+  <line x1="310" y1="310" x2="530" y2="420" stroke="#cccccc" />
+
+  <line x1="100" y1="160" x2="340" y2="570" stroke="#00ffff" />
+  <line x1="340" y1="570" x2="560" y2="120" stroke="#ffff00" />
+  <line x1="340" y1="570" x2="310" y2="310" stroke="#ff00ff" />
+  <line x1="340" y1="570" x2="300" y2="60" stroke="#808080" />
+
+  
+  <line x1="100" y1="160" x2="350" y2="280" stroke="black" />
+  <line x1="350" y1="280" x2="560" y2="120" stroke="black" />
+  <line x1="560" y1="120" x2="300" y2="60" stroke="black" />
+  <line x1="300" y1="60" x2="100" y2="160" stroke="black" />
+  <line x1="100" y1="160" x2="120" y2="440" stroke="black" />
+  <line x1="80" y1="417" x2="340" y2="570" stroke="blue" />
+  <line x1="340" y1="570" x2="352" y2="230" stroke="lime" />
+  <line x1="340" y1="570" x2="560" y2="396" stroke="red" />
+  <line x1="530" y1="420" x2="560" y2="120" stroke="black" />
+
+
+    <circle cx="530" cy="420" r="6" fill="red" stroke="black" />
+    <circle cx="560" cy="120" r="6" fill="yellow" stroke="black" />
+    <circle cx="340" cy="570" r="6" fill="black" stroke="black" />
+    <circle cx="350" cy="280" r="6" fill="lime" stroke="black" />
+    <circle cx="100" cy="160" r="6" fill="aqua" stroke="black" />
+    <circle cx="120" cy="440" r="6" fill="blue" stroke="black" />
+    <circle cx="300" cy="60" r="6" fill="white" stroke="black" />
+    <circle cx="310" cy="310" r="6" fill="fuchsia" stroke="black" />
+
+    <circle cx="440" cy="491" r="6" fill="maroon" stroke="black" />
+    <circle cx="227" cy="503" r="6" fill="navy" stroke="black" />
+    <circle cx="214" cy="355" r="6" fill="teal" stroke="black" />
+    <circle cx="454" cy="337" r="6" fill="olive" stroke="black" />
+    <circle cx="323" cy="431" r="6" fill="purple" stroke="black" />
+    <circle cx="345" cy="420" r="6" fill="green" stroke="black" />
+    <circle cx="312" cy="211" r="6" fill="silver" stroke="black" />
+    <circle cx="327" cy="396" r="6" fill="gray" stroke="black" />
+
+
+    <text x="350" y="584" font-family="Courier" font-size="15" fill="black">black(00,00,00)=0</text>
+    <text x="435" y="512" font-family="Courier" font-size="15" fill="black">maroon(80,00,00)=4</text>
+    <text x="5" y="468" font-family="Courier" font-size="15" fill="black">blue(00,00,ff)=9</text>
+    <text x="95" y="525" font-family="Courier" font-size="15" fill="black">navy(00,00,80)=2</text>
+    <text x="303" y="46" font-family="Courier" font-size="15" fill="black">white(ff,ff,ff)=15</text>
+
+    <text x="562" y="395" font-family="Courier" font-size="15" fill="red">R</text>
+    <text x="70" y="416" font-family="Courier" font-size="15" fill="blue">B</text>
+    <text x="348" y="223" font-family="Courier" font-size="15" fill="green">G</text>
+
+  Sorry, your browser does not support inline SVG.
+  </svg>
+<div>
+<p>Having this it is easy to cast any (R, G, B) triplet to the nearest color using a standard
+Euclidean distance &mu; restricted to the cube:</p>
+<p>
+&mu; : [0, 255]<sup>3</sup> &ni; (R, G, B) &rarr; min<sub>j</sub>{&radic;((R-VGA<sub>j</sub>[0])<sup>2</sup>+(G-VGA<sub>j</sub>[1])<sup>2</sup>+(B-VGA<sub>j</sub>[2])<sup>2</sup>)} &isin; {c<sub>0</sub>, ..., c<sub>15</sub>}
+</p>
+<p>Since 'min' function is not unique, the resulting palette does not look the best...
+The result is:</p>
+<img src="BALOON_C.GIF" alt="">
+
+<h2 id="mouse-support">mouse support<a class="top-arrow" href="#top">&uarr;</a></h2>
+<h3>ASCII_FM[C].c</h3>
+<p>Final modification uses mouse as a tool to show a clip of the screen of size 16&times;16=256 (full set) characters.</p>
+
+<hr>
+
+<h2 id="compilation-summary">summary<a class="top-arrow" href="#top">&uarr;</a></h2>
+<ul>
+<li>ASCII.c &ndash; static ASCII image; uses <a href="ASCII.CORE"><code>ASCII.CORE</code></a>
+<pre>
+$ <b>gcc -Werror -o ASCII <u>ASCII.c</u></b>
+$ <b>./ASCII ASCII_image_08.data FLOPPY.ASM</b>
+
+--&gt; reduce GIMP RAW DATA file to a binary form... done
+--&gt; prepare new ASCII table...................... done
+
+--&gt; it is <b>250</b> different ASCII characters to be redefined
+----------------------
+-         OK         -
+----------------------
+
+...
+<!--
+0001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001
+0002000100020001000200010002000100020001000200010002000100020001000200010002000100020001000200010002000100020001000200010002000100020001000200010002000100020001
+00010001000100010001000100010001000100010001030405060708090a0b0c0d0e0f0e1011121213131314151516171819181a1b010001000100010001000100010001000100010001000100010001
+000200010002000100020001000200010002000100021c1d1e1f202122232425262728292a2b2c2d1d2e2f2e2f1d2f1d2f1d2f1d04040430313032330c0b0d0100020001000200010002000100020001
+000100010001000100010001000100010001000100342f35363738393a3b3c3d3e3f4041424344452f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f0100010001000100010001000100010001
+000200010002000100020001000200010002000146472f4849444444444a4b4c4d4e49444449444f2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f0000020001000200010002000100020001
+0001000100010001000100010001000100010001501d2f515253535455565758595a5b5c5d5e5f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f2e606100010001000100010001000100010001
+0002000100020001000200010002000100020062631d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d646500020001000200010002000100020001
+00010001000100010001000100010001000100662f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d6768696a6b6c6d6e6f702f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f7100010001000100010001000100010001
+00020001000200010002000100020001000272042f1d2f1d2f1d2f1d2f1d2f1d2f1d737475767778000200797a7b7c7d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f7e00020001000200010002000100020001
+0001000100010001000100010001000100017f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d80818201000100010001008384852f1d2f1d2f1d2f1d2f1d2f1d2f1d2f7e00010001000100010001000100010001
+0002000100020001000200010002000100861d1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d8788898a0001000200018b8c8d8e8f902f1d2f1d2f1d2f1d2f1d2f1d2f7e00020001000200010002000100020001
+0001000100010001000100010001000191921d1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f939495969798999a9b9c9d9e9fa0a12f1d2f1d2f1d2f1d2f1d2f1d2fa200010001000100010001000100010001
+00020001000200010002000100020001a31d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f2fa4a5a6a7a8a92f2e2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2faa00020001000200010002000100020001
+000100010001000100010001000100abac1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2fadaeafb0902f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2fb100010001000100010001000100010001
+000200010002000100020001000200b22f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2fb3b4b5b6b72f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f2e00020001000200010002000100020001
+0001000100010001000100010001b81d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1db9bab4b5b4bb2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f2e1b010001000100010001000100010001
+00020001000200010002000100bcbd1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1dbeb6b4bfb4c02f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1dc1020001000200010002000100020001
+00010001000100010001000100c22f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1dc3b5b4b5b4c42f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d00010001000100010001000100010001
+00020001000200010002000100c5c6c7c81d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1dc9b6b4bfcacb2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1dcc020001000200010002000100020001
+000100010001000100010001000100010001cdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e22f1db9e32f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1d2f1de4010001000100010001000100010001
+000200010002000100020001000200010002000100020001000200010002000100020001000200010002e5e6e7e8d1e9eaebecedeeeff0f1f2f3ddf4c6f5f6f7f8f90001000200010002000100020001
+0001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001
+0002000100020001000200010002000100020001000200010002000100020001000200010002000100020001000200010002000100020001000200010002000100020001000200010002000100020001
+0001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001
+
+--&gt; ...-->
+</pre>
+</li>
+
+<li>ASCII.c with too complicated picture
+<pre>
+$ <b>./ASCII ASCII_image_01.data KOT.ASM</b>
+
+--&gt; reduce GIMP RAW DATA file to a binary form... done
+--&gt; prepare new ASCII table...................... done
+
+--&gt; it is <b>1751</b> different ASCII characters to be redefined
+----------------------
+-        FAIL        -
+----------------------
+</pre>
+</li>
+
+<li>ASCII_F.c &ndash; unlimited ASCII characters with vertical scrolling;
+uses <a href="ASCII_F.CORE_1"><code>ASCII_F.CORE_1</code></a> or 
+<a href="ASCII_F.CORE_3"><code>ASCII_F.CORE_3</code></a>
+<pre>
+$ <b>gcc -Werror -o ASCII_F ASCII_F.c</b>
+$ <b>./ASCII_F ASCII_image_01.<u>data</u> KOT_3.ASM #L</b>
+# where #L = 1 or 3 = number of lines to be displayed at once
+:
+C:/&gt; TASM KOT_3 || TLINK /T KOT_3 || KOT_3.COM
+</pre>
+</li>
+
+<li>ASCII_FH.c &ndash; modification of ASCII_F.c with horizontal scrolling;
+uses <a href="ASCII_FH.CORE"><code>ASCII_FH.CORE</code></a>
+<pre>
+$ <b>gcc -Werror -o ASCII_FH ASCII_FH.c</b>
+$ <b>./ASCII_FH .<u>data</u> FAUN_3H.ASM</b>
+</pre>
+</li>
+
+<li>ASCII_FC.c &ndash; modification of ASCII_F.c with colour palette;
+uses <a href="ASCII_FC.CORE"><code>ASCII_FC.CORE</code></a>
+<pre>
+$ <b>gcc -Werror -o ASCII_FC ASCII_FC.c <u>-lm</u></b>
+$ <b>./ASCII_FC &lt;file&gt;.<u>data</u> &lt;file&gt;_c.<u>data</u> OUT.ASM</b>
+:
+</pre>
+</li>
+
+<li>ASCII_FM.c &ndash; modification of ASCII_F.c with mouse support;
+uses <a href="ASCII_FM.CORE"><code>ASCII_FM.CORE</code></a>
+<pre>
+$ <b>gcc -Werror -o ASCII_FM ASCII_FM.c</b>
+$ <b>./ASCII_FM &lt;file&gt;.<u>data</u> OUT.ASM</b>
+:
+</pre>
+</li>
+
+<li>ASCII_FMC.c &ndash; modification of ASCII_F.c with mouse support and colour palette;
+uses <a href="ASCII_FMC.CORE"><code>ASCII_FMC.CORE</code></a>
+<pre>
+$ <b>gcc -Werror -o ASCII_FMC ASCII_FMC.c</b>
+$ <b>./ASCII_FMC &lt;file&gt;.<u>data</u> &lt;file&gt;_c.<u>data</u>OUT.ASM</b>
+:
+</pre>
+</li>
+</ul>
