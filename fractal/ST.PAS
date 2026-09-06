@@ -1,0 +1,62 @@
+{
+    20030323
+}
+
+PROCEDURE GRAPH; ASSEMBLER;
+    ASM
+    MOV AX, 13H
+    INT 10H
+    END;
+
+PROCEDURE PUTPIXEL(X, Y : INTEGER; C : BYTE); ASSEMBLER;
+{
+    TG aka privalov (FASM)
+}
+    ASM
+    MOV DI, [Y]
+    SHL DI, 1
+    SHL DI, 1
+    SHL DI, 1
+    MOV AX, [Y]
+    SHL AX, 1
+    ADD DI, AX
+    SHL DI, 1
+    SHL DI, 1
+    SHL DI, 1
+    SHL DI, 1
+    SHL DI, 1
+    ADD DI, [X]
+    MOV AL, [C]
+    PUSH ES
+    MOV DX, 0A000H
+    MOV ES, DX
+    STOSB
+    POP ES
+    END;
+
+FUNCTION KEYPRESSED : BOOLEAN; ASSEMBLER;
+    ASM
+    MOV AH, 1
+    INT 16H
+    JZ @1
+    MOV AX, 1
+    JMP @2
+@1:
+    XOR AX, AX
+@2:
+    END;
+
+VAR X, Y : INTEGER;
+
+BEGIN
+
+GRAPH;
+
+FOR X := 0 TO 319 DO
+FOR Y := 0 TO 199 DO
+    PUTPIXEL(X, Y, Y AND X MOD (X XOR (Y) + 1));
+
+REPEAT
+UNTIL KEYPRESSED;
+
+END.

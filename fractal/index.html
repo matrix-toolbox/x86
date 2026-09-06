@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en_GB">
+<meta charset="utf-8">
+<meta name="description" content="Sokoban game in x86 assembly.">
+<meta name="keywords" content="wojciech bruzda sokoban bitologia">
+<meta name="author" content="wojciech bruzda">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="../x86.ico">
+<title>x86 &bull; fractals</title>
+
+<style>
+*{font-variant-ligatures: none;}
+.quote{border-left:8px solid #000;margin-left:16px;}
+img{border:1px solid #000;}
+.highlight{background-color:#ff0;}
+.obsolete{text-decoration:line-through;}
+</style>
+
+<p>updated at 2021-05-04 by wojtek at bitologia.org (<a href="../index.html">index</a>)</p>
+<hr>
+
+<h1>fractals</h1>
+
+<p>In mid 90's with the advent of &quot;fast&quot; CPUs, fractals became an omnipresent obsession.</p>
+
+<h2>1. <a href="https://en.wikipedia.org/wiki/Wac%C5%82aw_Sierpi%C5%84ski" target="_blank">W. Sierpi&nacute;ski</a></h2>
+<p>Source: <a href="ST.ASM">TASM</a>, <a href="ST.BAS">QBasic</a>.</p>
+<figure>
+<img src="ST.png" alt="">
+<figcaption>Fig. 1. Sierpi&nacute;ski triangle as a stochastic process.</figcaption>
+</figure>
+
+
+<h2>2. <a href="https://en.wikipedia.org/wiki/Benoit_Mandelbrot" target="_blank">B. Mandelbrot</a></h2>
+<p>Source: <a href="MS.ASM">TASM</a>, <a href="MS.BAS">QBasic</a>. It uses integer arithmetic! (and for some unknown reasons I used MACROs instead of PROCedures...)</p>
+<figure>
+<img src="MS01.PNG" alt="">
+<figcaption>Fig. 2. Integer-valued Mandelbrot set. Slightly deformed, but who cares as it appears in 3 (three) seconds (not minutes!) on a 80286.</figcaption>
+</figure>
+
+<h2>3. <a href="https://en.wikipedia.org/wiki/Gaston_Julia" target="_blank">G. Julia</a></h2>
+<p>Source: <a href="JS.ASM">TASM</a>, <a href="JS.BAS">QBasic</a>.</p>
+<figure>
+<img src="JS.GIF" alt="">
+<figcaption>Fig. 3. Snapshots of a dynamically generated Julia set.</figcaption>
+</figure>
+
+
+<h2>4. <a href="https://en.wikipedia.org/wiki/Edward_Norton_Lorenz" target="_blank">E. Lorenz</a></h2>
+<p>Source: <a href="LORENZ.ASM">TASM</a>, <a href="LORENZ.BAS">QBasic</a>.</p>
+<figure>
+<img src="LORENZ02.PNG" alt="">
+<figcaption>Fig. 4. Classic Lorenz attractor.</figcaption>
+</figure>
+
+
+<hr>
+<h2>5. <a href="../plasma/index.html">plasma</a></h2>
+
