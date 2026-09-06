@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<!-- 20130820 ONE DAY PROJECT
+     20130821 RELEASED
+     20130822 different tile sets and timer - NOW I CAN SAVE ALL PHOTOGRAPHS WHICH LOOK NICE ONLY AS THUMBNAILS! :)
+     20170127 layout change -->
+
+<html lang="en" dir="ltr" class="client-nojs">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/x-icon" href="../icon.gif">
+<title>pair match</title>
+
+<style type="text/css">
+body {
+    -background: -moz-linear-gradient(top, rgba(3,34,0,1) 0%, rgba(8,80,0,1) 18%, rgba(13,126,0,1) 33%, rgba(78,172,68,1) 53%, rgba(255,255,255,1) 99%);
+    -background-repeat:no-repeat;
+    -background-attachment:fixed;
+}
+
+img.tile {
+    width: 70px;
+    height: 70px;
+    margin: 3px 0px 0px 10px;
+    padding: 3px;
+    border: solid 2px #ccc;
+    border-radius: 5px; 
+}
+
+img.tile_mode {
+    width: 32px;
+    height: 32px;
+    vertical-align: middle;
+    border: solid 2px #ccc;
+    border-radius: 5px;
+}
+</style>
+
+<script><!--
+
+var game_time = -1;              // game timer measured in seconds
+var t;                           // time control variable
+var flag = 0;                    // control flag: 0 = no tile revealed yet, 1 = tile revealed;
+var attempts_counter = 0;
+var temp;                        // temporary value of the TILE
+var former_tile_number;          // = -1;
+var TILE;                        // array of scattered tiles
+var can_switch_tile_mode = 0;    // flag to control possibility of switching tile faces
+var tiles;                       // total number of tiles
+var tiles_counter;               // total number of tiles to be decremented during game
+var file_prefix = "1";           // start with default set of tiles (animals)
+var currently_clicked_tile = -1; // number of the currently marked tile
+var MAXIMUM_TILE_NUMBER = 20;    // Since the size of the biggest board is 8x6 = 40, the working
+                                 // directory should contain at least (20+1=21) tiles of a given
+                                 // type, counting from 0: "tile_t_00.png" ... "tile_t_20.png".
+                                 // That is 60 tiles of a total is the minimum number required
+                                 // for a proper script action. Parameter MAXIMUM_TILE_NUMBER depends
+                                 // on how many tiles (tile_t_nn.png) are there to be used.
+                                 // For instance if one prepares 100 different kinds of tiles of
+                                 // each kind (300 in total) and sets MAXIMUM_TILE_NUMBER=80, then only
+                                 // first 80 files will be used.
+
+function getParameter(parameter_name) {
+    parameter_name = parameter_name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+    var regexS = "[\\?&]"+parameter_name+"=([^&#]*)";
+    var regex = new RegExp(regexS);
+    var results = regex.exec(window.location.href);
+    if (results == null) {
+        return "";
+    } else {
+        return results[1]; // fetch parameter from addres: ".../index.html?game_mode=parameter_name"
+    }
+}
+
+function startTime() {
+    t = setTimeout(function() { startTime() }, 1000); // initialize timer (in seconds) for a single game
+    game_time = game_time + 1;
+    var printable_seconds = game_time; // add leading zeros...
+    if (game_time < 100) {
+        if (game_time > 9) {
+            printable_seconds = "0" + game_time;
+        } else {
+            printable_seconds = "00" + game_time;
+        }
+    }
+    if (game_time == 999) {
+        clearInterval(t);
+    }
+    document.getElementById('game_timer').innerHTML = printable_seconds;
+}
+
+// change the picture of the particular tile according to the flag value
+// flag values: 0 - clear...
+//              1 - overlay...
+//              2 - show tile
+function update_tile(tile_number, flag) {
+    if (flag == 2) {
+        var file_number = TILE[tile_number];
+        if (file_number < 10) {
+            file_number = "0".concat(file_number); // <=> "0" + file_number
+        }
+        document.getElementById(tile_number).src="tile_"+file_prefix+"_"+file_number+".png";
+    } else { // flag = 0 or 1
+        document.getElementById(tile_number).src="tile_"+flag+".png";
+    }
+}
+
+// c...(n, k) draws k integers out of the set of {1, 2, ..., n} WITHOUT replacement
+function combinations_nk_with_no_replacement(n, k) {
+    var m = 0, j, already_in_use = 0;
+    while (m < k) {
+        var r = Math.floor((Math.random() * (n)) + 1);
+        for (j = 0; j < k; j++) {
+            if (TILE[j] == r) {
+                already_in_use = 1;
+            }
+        }
+        if (already_in_use == 0) { // put it in a row and shift the index
+            TILE[m] = r;
+            TILE[m + 1] = r;
+            m += 2;
+        } else {
+            already_in_use = 0;
+        }
+    }
+}
+
+function RUN_GAME() {
+    var number_of_columns;
+    switch (getParameter('game_mode')) { // set the board size
+        default:
+        case "1":
+            tiles = 8;
+            tiles_counter = 8;
+            number_of_columns = 4;
+            TILE = new Array(0, 0, 0, 0,
+                             0, 0, 0, 0,
+                             0, 0, 0, 0,
+                             0, 0, 0, 0);
+            break;
+        case "2":
+            tiles = 15;
+            tiles_counter = 15;
+            number_of_columns = 6;
+            TILE = new Array(0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0);
+            break;
+        case "3":
+            tiles = 20;
+            tiles_counter = 20;
+            number_of_columns = 8;
+            TILE = new Array(0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0, 0, 0, 0);
+            break;
+    }
+
+//  once the TILE "array" was allocated (using null values) it must be filled with coupled integers
+    combinations_nk_with_no_replacement(MAXIMUM_TILE_NUMBER, tiles * 2);
+//  pairs of integers which are arranged next to each other must be reshuffled
+//
+//  pick any two (possibly different) indices and swap the contents of TILE array: TILE[i1] <===> TILE[i2]
+//  repeat the procedure sufficiently many times so that the input string will be permuted
+    for (i = 0; i < 128; i++) {
+        var i1 =  Math.floor((Math.random() * tiles * 2));
+        var i2 =  Math.floor((Math.random() * tiles * 2));
+        var t = TILE[i1];
+                TILE[i1] = TILE[i2];
+                           TILE[i2] = t;
+    }
+    for (tile_number = 0; tile_number < (tiles * 2); tile_number++) {
+//      if ((tile_number > 0) & (!((tile_number) % number_of_columns)))
+        if ((tile_number) * (!((tile_number) % number_of_columns))) { // without & (and)
+            document.write("<br>");
+        }
+        document.write("<img src='tile_1.png' alt='tile' class='tile' onmouseout='onMouseOut("+tile_number+")' onmouseover='onMouseOver("+tile_number+")' onclick='OnClick("+tile_number+")' id='"+tile_number+"'>");
+    }
+}
+
+function onMouseOver(tile_number) {
+    if (TILE[tile_number] != 0) {
+        document.getElementById(tile_number).style.borderColor="#14a";
+    }
+}
+
+function onMouseOut(tile_number) {
+//  might be similar condition as in onMouseover... but it overlays the same colour...
+    document.getElementById(tile_number).style.borderColor="#ccc";
+}
+
+function onTMClick(tile_mode) {
+    file_prefix = tile_mode;
+//  force to change the current (revealed) tile - the first condition (tiles_counter > 1) could be simplified...
+    if ((tiles_counter > 1) & (can_switch_tile_mode == 1)) {
+        update_tile(currently_clicked_tile, 2);
+    }
+}
+
+function onTMMouseOver(tile_mode) {
+    document.getElementById(tile_mode).style.borderColor = "#14a";
+}
+
+function onTMMouseOut(tile_mode) {
+    document.getElementById(tile_mode).style.borderColor = "#ccc";
+}
+
+function OnClick(tile_number) {
+    document.getElementById('status_span').innerHTML = ""; 
+    if ((TILE[tile_number] != 0) & (tile_number != former_tile_number)) { // if tile is ready for action <=> no tile revealed so far
+        attempts_counter++; // count only mouse-clicks over the tiles
+        currently_clicked_tile = tile_number; // for the real time changing of tile faces
+        if (flag == 0) { // nothing revealed
+            temp = TILE[tile_number];
+            former_tile_number = tile_number;
+            flag = 1;
+            update_tile(tile_number, 2); // reveal tile
+            can_switch_tile_mode = 1;
+        } else {
+            flag = 0;
+            if (TILE[tile_number] == temp) {
+//              document.getElementById('status_span').innerHTML = "(matched)"; 
+                tiles_counter--; // countdown tiles
+                TILE[former_tile_number] = 0;
+                TILE[tile_number] = 0;
+                update_tile(former_tile_number, 0); // clear tile
+                update_tile(tile_number, 0);
+                can_switch_tile_mode = 0;
+            } else {
+                update_tile(former_tile_number, 1); // restore overlay
+                update_tile(tile_number, 2); // reveal tile
+                former_tile_number = tile_number;
+                temp = TILE[tile_number];
+                flag = 1; // keep going
+                can_switch_tile_mode = 1; 
+            }
+        }
+    }
+    document.getElementById('number_of_attempts').innerHTML = attempts_counter;
+    if (tiles_counter==1) { // turn opacity for last pair on
+        for (j = 0; j < tiles * 2; j++) {
+            if (TILE[j] != 0) {
+                update_tile(j, 2);
+                document.getElementById(j).style.opacity = "0.5";
+            }
+        }
+    }
+    if (tiles_counter == 0) { // board cleared
+        document.getElementById('status_span').style.color = "#f00";
+        document.getElementById('status_span').innerHTML = "- Done! Press F5 to restart or pick the board size.";
+        clearInterval(t); // stop timer
+        for (j = 0; j < tiles * 2; j++) { // turn opacity off
+            document.getElementById(j).style.opacity="1.0"; // restore opacity
+        }
+    }
+}
+-->
+</script>
+
+</head>
+
+<body onload="startTime()">
+
+<h1>pair match</h1>
+<hr>
+<p>match the pairs in the smallest possible amount of turns;
+number of attempts: <span id="number_of_attempts">0</span>, time (seconds): <span id="game_timer">000</span> <span id="status_span"></span> </p>
+<p>
+<img src='tm_1.png' alt='tile_set' id='tm1' onClick='onTMClick("1")' onMouseOver='onTMMouseOver("tm1")' onMouseOut='onTMMouseOut("tm1")' class='tile_mode' title='animals'>
+<img src='tm_2.png' alt='tile_set' id='tm2' onClick='onTMClick("2")' onMouseOver='onTMMouseOver("tm2")' onMouseOut='onTMMouseOut("tm2")' class='tile_mode' title='katakana'>
+<img src='tm_3.png' alt='tile_set' id='tm3' onClick='onTMClick("3")' onMouseOver='onTMMouseOver("tm3")' onMouseOut='onTMMouseOut("tm3")' class='tile_mode' title='varia'>
+&larr; tile set, board size:
+<a href='index.html?game_mode=1'>4&times;4</a>,
+<a href='index.html?game_mode=2'>5&times;6</a>,
+<a href='index.html?game_mode=3'>5&times;8</a>.</p>
+
+<hr>
+
+<script><!--
+RUN_GAME();
+-->
+</script>
+
+
+<hr>
+
+<p>2017.01.27 &bull; <a href="../index.html">wojciech bruzda</a></p>
+
+</body>
+</html>
+
