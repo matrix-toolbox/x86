@@ -1,0 +1,10 @@
+* enhanced color version
+	--> sokoban_3.png
+
+
+
+* text mode version
+	make use of 16 special (full matrix) ASCII characters
+	--> sokoban_4_ASCII9.png
+
+
