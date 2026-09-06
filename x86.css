@@ -1,0 +1,8 @@
+body{font-variant-ligatures:none;}
+.formula{border:2px solid #000;padding:8px;}
+.alert{color:#f00;}
+.DEPRECATED{text-decoration:line-through;color:#000;}
+pre{margin-left:16px;padding:4px;}
+.local-link{font-weight:bold;}
+.top{float:right;}
+.comment{background-color:#0f0;color:#000;padding:2px;}

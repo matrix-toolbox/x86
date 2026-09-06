@@ -1,0 +1,12 @@
+pre {
+ white-space: pre-wrap;       /* css-3 */
+ white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+ white-space: -pre-wrap;      /* Opera 4-6 */
+ white-space: -o-pre-wrap;    /* Opera 7 */
+ word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+ul{list-style-type:square;}
+body{font-variant-ligatures: none;}
+.alert{color:#fff;background-color:#f00;font-weight:bold;}
+.obsolete{text-decoration:line-through;}
+.top{float:right;}
