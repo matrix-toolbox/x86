@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="us">
+<meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="../icon.gif">
+
+<title>Huarong-Dao</title>
+
+<style>
+body {text-align: justify;}
+
+.block_12 {
+  border-radius: 3px;
+  background-color: #aaf;
+  width: 30px;
+  height: 60px;
+  border: 1px solid #88d;
+  box-shadow: 0 0 10px #ccc;
+}
+
+.block_12_empty {
+  border-radius: 3px;
+  background-color: #fff;
+  width: 30px;
+  height: 60px;
+  border: 1px solid #fff;
+}
+
+.block_21 {
+  border-radius: 3px;
+  background-color: #aaf;
+  width: 60px;
+  height: 30px;
+  border: 1px solid #88d;
+  box-shadow: 0 0 10px #ccc;
+}
+
+.block_21_empty {
+  border-radius: 3px;
+  background-color: #fff;
+  width: 60px;
+  height: 30px; 
+  border: 1px solid #fff;
+}
+
+.block_22 {
+  border-radius: 3px;
+  background-color: #f33;
+  width: 60px;
+  height: 60px;
+  border: 1px solid #d11;
+  box-shadow: 0 0 10px #ccc;
+}
+
+.block_11 {
+  border-radius: 3px;
+  background-color: #ff3;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #dd1;
+  box-shadow: 0 0 10px #ccc;
+}
+</style>
+
+
+<h1>&#33775;&#23481;&#36947;</h1>
+<hr>
+
+<p>Classic configuration &ndash; the red 2 &times; 2 block (indexed by 4) must find the way from the
+top to the middle-bottom:</p>
+
+<table>
+<tr><td>
+<table style="text-align: center; font-family: georgia;">
+<tr><td colspan="1" rowspan="2" class="block_12">2</td><td colspan="2" rowspan="2" class="block_22">4</td><td colspan="1" rowspan="2" class="block_12">2</td></tr>
+<tr></tr>
+<tr><td colspan="1" rowspan="2" class="block_12">2</td><td colspan="2" rowspan="1" class="block_21">2</td><td colspan="1" rowspan="2" class="block_12">2</td></tr>
+<tr><td colspan="1" rowspan="1" class="block_11">1</td><td colspan="1" rowspan="1" class="block_11">1</td></tr>
+<tr><td colspan="1" rowspan="1" class="block_11">1</td><td colspan="2" rowspan="1" class="block_21_empty">&nbsp;</td><td colspan="1" rowspan="1" class="block_11">1</td></tr>
+</table>
+</td>
+<td>
+&nbsp;&nbsp;&nbsp;&nbsp;&rarr;&nbsp;&nbsp;&nbsp;
+</td>
+<td>
+<table style="text-align: center; font-family: georgia;">
+<tr><td colspan="1" rowspan="2" class="block_12">2</td><td colspan="1" rowspan="2" class="block_12">2</td><td colspan="1" rowspan="2" class="block_12">2</td><td colspan="1" rowspan="2" class="block_12">2</td></tr>
+<tr></tr>
+<tr><td colspan="1" rowspan="1" class="block_11">1</td><td colspan="1" rowspan="1" class="block_11">1</td><td colspan="2" rowspan="1" class="block_21">2</td></tr>
+<tr><td colspan="1" rowspan="2" class="block_12_empty">&nbsp;</td><td colspan="2" rowspan="2" class="block_22">4</td><td colspan="1" rowspan="1" class="block_11">1</td</tr>
+<tr><td colspan="1" rowspan="1" class="block_11">1</td</tr>
+</table>
+</td>
+</tr>
+</table>
+
+<hr>
+
+<p>Iterative <a href="huarong_dao.tar.gz">solver</a>. It consequtively draws all
+possible block configurations until the one in which the red block (a warlord)
+is on the final destination.</p>
+
+<p>Simple example of a 3 &times; 4 board with four blocks (two units, one 2 &times; 1 and the warlord).
+The warlord must be set on the bottom-right corner (thick green line)</p>
+
+<img src="huarong_dao.png" alt="" style="max-width: 100%; max-height: 100%;">
+
+<p>In the initial position []<sub>1</sub> only
+two []<sup><span style="color: #00f;">2</span></sup> blocks can
+move: 2 &times; 1 &ndash; rightward or 1 &times; 1 &ndash; downward. Thus the second line
+consists of two diagrams. The loop turns again and the offset with current
+board configuration bumps by one.
+So, on the second board []<sub>2</sub> we have two movable blocks
+in two []<sup><span style="color: #00f;">2</span></sup> directions (note
+that we do not count draw-backs). In the next turn of the loop we
+are in the third offset position and, on the third []<sub>3</sub>
+board, we have three movable blocks in four
+[]<sup><span style="color: #00f;">4</span></sup> directions. However,
+one movement leads to the repeated configuration &ndash; same as in the diagram
+number []<sub>5</sub>, generated out of the diagram []<sub>2</sub>.
+Such repetitions are ignored in future turns.
+The procedure repeats until the warlord is found on the green line &ndash; in
+this case it takes 72 steps which can be reduced to 10 by the sieve.</p>
+
+<p>Note that the step counter depends on the counting method. Here we assume that if block moves
+two positions, say, downward then it takes 2 steps rather than 1. Hence, some could
+say that the board above could be solved in just 6 steps...</p>
+
+<hr>
+
+<p>2015 &bull; 08 &bull; 20 &bull; <a href="../index.html">wojciech bruzda</a></p>
+

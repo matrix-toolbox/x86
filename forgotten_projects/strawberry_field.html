@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="../icon.gif">
+<meta name="date" content="2018-08-08" scheme="YYYY-MM-DD">
+<title>stupid game</title>
+
+    <h1>stupid game</h1>
+    <hr>
+    <p>Seen in the polish TV series from nineties. Original title was like
+     &quot;Strawberry Field(s)&quot;. One-day project. Rules are...</p>
+    <hr>
+    <p><a href="javascript:location.reload(true)" name="4892">reset</a>
+    &bull; <span id="gp_status">steps: -</span></p>
+    <script>
+    var gp_array = [[0,2,2,3,0],
+                    [2,2,0,2,1],
+                    [2,2,2,2,0],
+                    [0,0,2,2,0]];
+    var steps_to_go = 11;
+    var steps = 0;
+    var last_r = 1;
+    var last_c = 4;
+
+    function E_norm(r, c, last_r, last_c) { // squared norm...
+        return Math.pow(r - last_r, 2) + Math.pow(c - last_c, 2);
+    }
+
+    function manage_path(r, c) {
+        var id_number = Math.pow(2, r) * Math.pow(3, c); // Goedel coding...
+        var last_id = (Math.pow(2, last_r) * Math.pow(3, last_c))
+        document.getElementById(last_id.toString()).style.backgroundColor = "#fff";
+        document.getElementById(id_number.toString()).style.backgroundColor = "#00f";
+    }
+
+    function mouse_click(r, c) {
+        if (E_norm(r, c, last_r, last_c) == 1) {
+            if (gp_array[r][c] == 2) {
+                manage_path(r, c);
+                last_r = r;
+                last_c = c;
+                gp_array[r][c] = 0;
+                document.getElementById("gp_status").innerHTML = "steps: " + (steps + 0);
+                steps++;
+            } else if (gp_array[r][c] == 3) {
+                manage_path(r, c);
+
+                if (steps >= steps_to_go) {
+                    document.getElementById("gp_status").innerHTML = "steps: " + steps + " &bull; you win!";
+                } else {
+                    document.getElementById("gp_status").innerHTML = "you fail...";
+                }
+            }
+        }
+    }
+
+    document.write("<table style='border-spacing: 10px; border-collapse: separate;'>");
+
+    var id_number = 0;
+
+    for (var r = 0; r < 4; r++) {
+        document.write("<tr>");
+        for (var c = 0; c < 5; c++) {
+            var bg_colour;
+            switch (gp_array[r][c]) {
+                case 0:
+                bg_colour = "#fff";
+                break;
+                case 1:
+                bg_colour = "#00f";
+                break;
+                case 2:
+                bg_colour = "#0f0";
+                break;
+                case 3:
+                bg_colour = "#f00";
+                break;
+            }
+            id_number++;
+            if (bg_colour == "#fff") {
+                document.write("<td style='background-color: "+bg_colour+"; border: 0px solid #000; width: 40px; height: 40px;' onclick='mouse_click("+r+","+c+")' id='"+Math.pow(2, r) * Math.pow(3, c)+"'>&nbsp;</td>");
+            } else {
+                document.write("<td style='background-color: "+bg_colour+"; border: 1px solid #000; width: 40px; height: 40px;' onclick='mouse_click("+r+","+c+")' id='"+Math.pow(2, r) * Math.pow(3, c)+"'>&nbsp;</td>");
+            }
+        }
+        document.write("</tr>");
+    }
+    document.write("</table>");
+
+    </script>
+    <hr>
+
+<p>2016 &bull; 10 &bull; 13 &bull; <a href="../index.html">wojciech bruzda</a></p>
+
+
