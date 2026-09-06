@@ -1,0 +1,52 @@
+$ sudo apt install fcode-utils nasm
+$ romheaders BIOS.VGA
+
+$ lspci -vnn |grep -i VGA -A 20
+$ sudo dd if=/dev/mem of=vgabios.bin bs=1k count=64 skip=768
+$ hexdump vgabios.bin | head
+
+$ sudo su
+$ objdump -m i8086 -b binary --adjust-vma=0x000c0000 -D ROM_FILE > disassembled.asm
+or
+$ nsidasm ROM_FILE
+
+--------------------------------------------------------------------------------
+entry point for INIT function:
+
+        switch (data->reserved[1]) {
+        case 0xeb: /* short jump */
+                entry = data->reserved[2] + 2;
+                /* a short jump instruction is 2 bytes,
+                 * we have to add those to the offset
+                 */
+                break;
+        case 0xe9: /* jump */
+                entry = ((data->reserved[3]<<8)|data->reserved[2]) + 3;
+                /* jump is 3 bytes, so add them */
+                break;
+        default:
+                entry=0;
+                break;
+        }
+
+        if (entry) {
+                /* 0x55aa rom signature plus 1 byte len */
+                entry += 3;
+                printf( "  Entry point for INIT function:"
+                        " 0x%x\n\n",entry);
+        } else
+                printf( "  Unable to determine entry point for INIT"
+                        " function. Please report.\n\n");
+
+        break;
+--------------------------------------------------------------------------------
+
+references:
+[1] https://lenovopress.com/lp1228.pdf
+[2] http://www.osdever.net/FreeVGA/vga/vga.htm
+[3] https://www.coresecurity.com/sites/default/files/private-files/publications/2016/05/corelabs-ekoparty-2012-VGA_Persistent_Rootkit.pdf
+[4] https://montcs.bloomu.edu/Information/LowLevel/DOS-Debug.html
+[5] https://defuse.ca/online-x86-assembler.htm#disassembly2
+[6] https://en.wikipedia.org/wiki/X86_instruction_listings
+
+

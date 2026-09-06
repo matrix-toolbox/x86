@@ -1,0 +1,16 @@
+@ 2022-11-19
+
+-- 20050711 r8 - self-learning procedure based on previous games
+-- 20070803 marbles - BATTLE_FIELD.get_dirt();
+-- 20150110 Oskar Van Deventer's 1x1x4-geared machine
+-- aperiodic path as random tiles from Kostelec u Jihlavy (Tsuro board-game; 20150602)
+-- stereogram ISBN 83-03-02273-3 (cz. III. t. 3) Lucjan Znicz 1988 (KAW Gdansk)
+-- BDSR_IIIM
+-- BD optimizer - Long-Term Project
+-- Boulder Rush (for m$w)
+-- BDC full play of the first game with details (credits, etc.)
+-- BDC short review of other games and particular caves
+-- Rolling Jack's short review
+-- T. Binek -- full booklets + short note about AGROBISP
+-- ASSEMBLY PROJECTS...
+

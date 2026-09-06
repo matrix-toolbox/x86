@@ -1,0 +1,129 @@
+TITLE PROGRAM TEST GRAPHICS MODE ; WOJTEK [AT] BITOLOGIA.ORG
+.MODEL SMALL
+.CODE
+
+PUT_PIXEL MACRO PX, PY, PC ; PUT_PIXEL AT (PX, PY) WITH COLOR=PC
+        MOV AX, 0A000H
+        MOV ES, AX
+
+        MOV AX, 1803H
+        MOV DX, 03CEH
+        OUT DX, AX
+
+        MOV DX, 03C4H
+        MOV AL, 02H   ; MM
+        OR AH, PC    ; CC
+        OUT DX, AX    ; SELECTOR CCMMH : CC=COLOR CODE, MM=MAP MASK
+        ; L := LINEAR_INDEX = PY*80 + PX\8
+        ; => DI = L \ 8
+        ;    AX = 8 - (L % 8)
+
+        MOV AX, PY
+        MOV CX, 80D
+        MUL CX      ; AX = PY * 80
+        MOV BX, AX
+
+        MOV AX, PX
+        MOV CL, 3
+        SHR AX, CL ; AX = PX \ 8
+        ADD BX, AX ; BX = PY * 80 + (PX \ 8)
+        PUSH BX
+
+        XOR DX, DX
+        MOV AX, PX
+        MOV CX, 8
+        DIV CX       ; AX=AX\8   DX=AX%8
+
+        SUB CX, DX
+        DEC CX
+        MOV BX, 1
+        SHL BX, CL   ; AX = 8 - (L % 8)
+
+        POP DI
+        MOV DX, ES:DI
+        OR DX, BX
+        MOV ES:DI, DX
+ENDM
+
+START:
+        MOV AX, 04F02H
+        MOV BX, 0105H
+        INT 10H
+
+        MOV DL, AH
+        MOV AH, 2
+        INT 21H
+
+PRESS_ESC1:
+        IN AL, 60H    ; RUN UNTIL ESC-PRESSED
+        CMP AL, 1
+        JNE PRESS_ESC1
+        MOV AX, 0003H ; RESTORE TEXT MODE AND EXIT TO M$-DOS
+        INT 10H
+        MOV AH, 4CH
+        INT 21H
+
+
+        MOV AX, 0012H ; VGA 640x480x16
+        INT 10H
+
+PUT_PIXEL 0,10,3
+PUT_PIXEL 1,10,3
+PUT_PIXEL 2,10,3
+PUT_PIXEL 3,10,3
+PUT_PIXEL 4,10,3
+PUT_PIXEL 5,10,3
+PUT_PIXEL 6,10,3
+PUT_PIXEL 7,10,3
+
+PUT_PIXEL 8,10,4
+PUT_PIXEL 9,10,4
+PUT_PIXEL 10,10,4
+PUT_PIXEL 11,10,4
+PUT_PIXEL 12,10,4
+PUT_PIXEL 13,10,4
+PUT_PIXEL 14,10,4
+PUT_PIXEL 15,10,4
+
+PUT_PIXEL 16,10,1
+PUT_PIXEL 17,10,2
+PUT_PIXEL 18,10,3
+PUT_PIXEL 19,10,4
+PUT_PIXEL 20,10,5
+PUT_PIXEL 21,10,6
+PUT_PIXEL 22,10,7
+PUT_PIXEL 23,10,8
+
+PUT_PIXEL 24,10,3
+PUT_PIXEL 25,10,3
+PUT_PIXEL 26,10,3
+PUT_PIXEL 27,10,3
+PUT_PIXEL 28,10,3
+PUT_PIXEL 29,10,3
+PUT_PIXEL 30,10,3
+PUT_PIXEL 31,10,3
+
+PUT_PIXEL 32,10,3
+PUT_PIXEL 33,10,3
+PUT_PIXEL 34,10,3
+
+        XOR SI, SI
+DRAW:   INC SI
+        PUSH SI
+        PUT_PIXEL SI, SI, 4
+        POP SI
+        CMP SI, 333D
+        JNE DRAW
+
+
+PRESS_ESC:
+        IN AL, 60H    ; RUN UNTIL ESC-PRESSED
+        CMP AL, 1
+        JNE PRESS_ESC
+        MOV AX, 0003H ; RESTORE TEXT MODE AND EXIT TO M$-DOS
+        INT 10H
+        MOV AH, 4CH
+        INT 21H
+END START
+
+

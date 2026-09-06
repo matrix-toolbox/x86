@@ -1,0 +1,47 @@
+-------------------------------------------------------------------------------
+
+PI in binary
+============
+
+use $ dc -ls
+to play with arbitrary (here 60 decimal places) precision
+scale = 60
+p = 4 * a(1)
+p = p - 3
+p
+.141592653589793238462643383279502884197169399375105820974944
+
+one needs 64 bits (8 bytes)
+so it must be checked how many exponents of 1/2 fits into 0.1415...
+in other words the following expression must be non-negative:
+
+        p - \sum_{j=1}^{64} b_j (1/2)^j where b_j must be set to 0 or 1
+
+in our case
+
+p=-2^-3-2^-6-2^-11-2^-12-2^-13-2^-14-2^-15-2^-16-2^-18-2^-19-2^-21-2^-23-2^-25-2^-29-2^-33-2^-38-2^-40-2^-41-2^-43-2^-47-2^-48-2^-53-2^-57-2^-58-2^-60-2^-63-2^-64
+
+then it remains to put ones at places that correspond to above |exponents| (starting with index numer _one_)
+
+3.1415... = 11.0010010000111111011010101000100010000101101000110000100011010011...B
+
+
+now we convert this binary representation to a temporary real (extended precision) word for FPU
+
+S = 0 (+)
+11.0010010000111111011010101000100010000101101000110000100011010011...B =
+1.10010010000111111011010101000100010000101101000110000100011010011...B x 2^1
+C - P = 1
+P = 3FFFH
+C = 3FFFH + 1 = 4000H
+M = 11001001'00001111'11011010'10100010'00100001'01101000'11000010'00110100'11...B
+  = C9       0F       DA       A2       21       68       C2       34
+
+
+finally: PI = + 4000C90FDAA22168C234
+         ---------------------------
+
+more at http://www.website.masmforum.com/tutorials/fptute/fpuchap2.htm
+
+-------------------------------------------------------------------------------
+
