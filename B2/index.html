@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en_EN">
+<title>x86 &bull; ASCII/B2</title>
+<meta charset="utf-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+<link rel="icon" href="../x86.ico">
+<link rel="stylesheet" href="../x86.css">
+
+
+<p>updated at 2021-02-08 by wojtek at bitologia.org (<a href="../index.html">index</a>)</p>
+
+<hr>
+<h1><a href="B1.png" class="local-link">B1</a></h1>
+
+<hr>
+<h1>B2</h1>
+<p>A short movie can be prepared out of thirteen frames with the content representing the symbol of Bitologia:</p>
+<p><code>BF01.gif</code>: <img src="BF01.gif" alt=""></p>
+<p><code>BF02.gif</code>: <img src="BF02.gif" alt=""></p>
+<p><code>BF03.gif</code>: <img src="BF03.gif" alt=""></p>
+<p>...</p>
+<p><code>BF13.gif</code>: <img src="BF13.gif" alt=""></p>
+
+<p>Each 640&times;48 px GIF is transformed in GIMP to a raw .data file with a sequence of RGB triplets
+cast to a 1-bit-colour image.
+This corresponds to three lines of 80 ASCII characters in the 0x03 DOS text mode.</p>
+
+<p>The checkered pattern</p>
+<img src="BF01_checker.png" alt="">
+<p>guides the eye for eighty 8&times;16 pixel patterns in three rows over the lettering in the background.</p>
+
+<p>Shell <a href="RUN" class="local-link">script</a> invokes a C <a href="ASCII_B2.c" class="local-link">procedure</a> which appends
+thirteen segments of DB-data to a <a href="B2.CORE" class="local-link">core</a> that makes a
+ready-to-be-compiled assembly file. The result is roughly like:</p>
+
+<img src="B2_DOSBOX.gif" alt="">
+
+<p>Note that DOSBOX handles text mode without additional vertical lines between every two inner columns.
+This is not the case when using real VGA standard - see the picture (grabbed by ScreenThief - hence only static presentation) below. Note, also that the actual
+resolution is 720&times;400 (GIF from DOSBOX was rescaled to 640&times;400).</p>
+<img src="B2_VGA.png" alt="">

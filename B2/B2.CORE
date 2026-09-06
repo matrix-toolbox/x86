@@ -1,0 +1,118 @@
+;-------------------------------------------------------------------------------
+; 2021-02-06
+;
+; bitologia diffusion symbol
+;
+; wojtek[at]bitologia.org
+; maciek[at]bitologia.org
+;-------------------------------------------------------------------------------
+
+.model tiny
+.code
+        org 100h
+start:
+
+
+
+        ;;mov ax, 0003h ; CLS
+        ;;int 10h
+        mov ax, 0b800h
+        mov es, ax   ; TODO: DRY!
+        xor di, di
+        mov ah, 7    ; color attribute
+        mov al, 255d ; standard CLS (mov ax, 0003h) fills screen with 0
+        mov cx, 4000 ; which is replaced by something during the procedure
+        cld          ; thus, we have to clean the screen with another blank:ASCII=255
+        rep stosw    ; CLS with ASCII=255 instead of ASCII=0
+    
+        mov ah, 01h  ; "hide" cursor
+        mov cx, 2607h
+        int 10h
+
+
+esc_:   mov cx, 13d   ; draw 13 frames (not lines!) each frame is three lines
+        xor bx, bx
+draw:   call draw_line_01
+        loop draw
+        in al, 60h    ;
+        cmp al, 1     ;
+        jne esc_      ; loop until ESC-pressed
+        mov ax, 0003h
+        int 10h       ; restore standard ASCII set
+        mov ax, 4c00h
+        int 21h       ; back to DOS
+;------------------------------------------------------------------------------
+draw_line_01 proc
+        push cx
+        push di
+        push cs
+        pop ds
+        push bx
+        push cs
+        pop es
+        mov bp, offset FRAME_01  ; start with FRAME_01 and skip 80 bytes every loop (~mod 25)
+
+        ; starting with LINE_01 one must jump to the next LINE_02 and so on...
+        ; by skipping 80*16 bytes every time
+        ; every jump is actually controlled by BX which increases by 10d
+        ; hence, it is enough to multiply every offset by 128
+        ; that is to shift BX by 7 to the left and finally add the result to BP
+        ; ...
+;        mov cl, 7 ; this time we have fixed offset below
+;        shl bx, cl
+        add bp, bx
+        
+        ; ... easy :)
+
+        mov cx, 240d; 80d########################
+        mov dx, 0d
+        mov bx, 1000h
+        mov ax, 1100h
+        int 10h
+        pop bx
+        mov ax, 0b800h
+;        add ax, bx ; don't jump over the line this time
+        mov es, ax
+
+
+;        xor di, di
+	mov di, 1760 ; BITOLOGIA DIFFUSION should be centered vertically!
+
+        mov cx, 240d; 80d;#######################
+        xor al, al
+load01: mov es:[di], al ; instead of ASCII_MAP
+                        ; - just take consecutive integers from 0 to 240d
+        inc al
+        inc di ; skip the byte of attributes (responsible for colours
+               ;                              -- for a future use maybe)
+ mov byte ptr es:[di], 2 ; ASCII attribute
+        inc di
+        loop load01
+        pop di
+        call slow_down
+        pop cx
+                      ; this time we have fixed offset:
+        add bx, 3840d ; draw (jump to) next line (offset)
+                      ; that is: 240x16=3840
+        ret
+draw_line_01 endp
+;------------------------------------------------------------------------------
+slow_down proc
+        push cx
+        xor cx, cx
+        mov dx, 4510h ; wait CX:DX RTC-microseconds
+        mov ah, 86h
+        int 15h
+        pop cx
+        ret
+slow_down endp
+
+;------------------------------------------------------------------------------
+; each line in LINE_XX is a single ASCII character
+; (every byte is an 8-bit row times 16 of them which gives a matrix 8x16
+; of std. ASCII char.)
+; 80 in total in a single row, and 25 in vertical ==> #(SCREEN)=2000
+
+; ALL BELOW SHOULD BE CREATED AUTOMATICALLY BY ASCII_*.c
+
+

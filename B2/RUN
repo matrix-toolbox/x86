@@ -1,0 +1,17 @@
+#!/bin/sh
+# 2021-02-06
+# wojtek[at]bitologia.org
+
+
+touch B2.ASM
+:> B2.ASM
+cat B2.CORE >> B2.ASM
+
+j=0
+for f in $(ls BF*data)
+do
+    ./ASCII_B2 $f $((++j)) >> B2.ASM
+done
+
+echo "end start" >> B2.ASM
+
