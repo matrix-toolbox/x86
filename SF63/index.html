@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<title>SF63</title>
+<meta charset="UTF-8">
+<style>
+body{font-variant-ligatures:none;}
+td,th{background-color:#bfb;padding:4px;border-left:4px solid #494;vertical-align:top;}
+th{background-color:#3c3;}
+.incomplete{background-color:#f00;color:#fff;font-weight:bold;}
+.perfect{background-color:#0f0;}
+#last-update{font-family:monospace;}
+</style>
+
+
+
+<p>update: 2022-09-16 by wojtek at bitologia.org (<a href="../index.html">index</a>)</p>
+<hr>
+<h1>SF63</h1>
+<!--p id="last-update">2022-09-16</p-->
+
+
+<p>Original <a href="https://en.wikipedia.org/wiki/Supaplex" target="_blank">Supaplex</a> for Amiga 500 is not an easy game.
+When playing for the first time one must learn both, the behaviour of the moving objects and the special configuration
+that solves a particular level. Steering Murphy with a joystick also needs a practice and is a bit exhaustive process for this device.
+Joy must be chosen properly, as its own dynamics might sometimes lead to very unwanted effects like accidental movements or misdirections in the most
+inappropriate moments. Additional random events in form of the bugs (which is actually a feature!) do not help either.
+Shortly, in comparison with Boulder Dash, Supaplex is a bit slower, however it implements much better physics.</p>
+
+<p>Michael Stopp claims, he can complete the game within 5 hours, 39 minutes, and 15 seconds. :o</p>
+
+<img src="supaplex.png" alt="">
+
+<p>Well... that is approximately 183 seconds on average per level. It is not impossible, but quite a challenging task.
+Of course, nobody can do this in one turn &ndash; minimal total time can be achieved only when each level is treated separately and
+eventually all statistics are summed up. Below there is my attempt to break the record which is</p>
+<p><b>5 hours, 37 minutes, and 56 seconds</b></p>
+<p> and still can be improved!
+Even though I had access to a genuine Amiga 500, the condition of its FDD and the joy, prevented me from being even close to the best time.
+So, all numbers below were achieved playing the <a href="SF63_111.ZIP">DOS version</a>
+of the game which is much easier and which allows one to cheat a little, especially when fighting with
+snik-snaks and electrons!
+Even in the face of all these facilitations, it has not been possible to establish such result without putting a significant effort. See details below.</p>
+
+<hr>
+
+<p>LEGEND for solver:</p>
+<ul>
+<li><code>uldr</code> = up left down right</li>
+<li>integer before <code>uldr</code> means the multiplicity of direction, eg. <code>9u = uuuuuuuuu</code></li>
+<li><code>ULDR</code> = peek up, peek left...</li>
+<li>next line stands for a little delay to set the stage (eg. the zonk to fall, or something similar...) or jump to another location</li>
+<li><code>P</code> = portal (spool)</li>
+<li><code>x|</code> = move direction <code>x</code> as long as possible</li>
+<li><code>E</code> =  exit</li>
+<li>asterisk * denotes the situation which can be hardly optimized</li>
+</ul>
+
+<p>For example, a semi-optimal solver for the first level reads:<br>
+<code>2u8rRu7rdrD6ru3rD7l3dD3ld5lU3ld11l2u2l3u2ld|3l4u2lDu3l5dRl2u4lUlu3lUlUd2lDu|lE</code>.</p>
+
+
+<table>
+<tr><th>level</th><th>T [m.s]</th><th>&Sigma; T [hour]</th><th>remark</th></tr>
+
+
+<script>
+SP63=[
+{"level":1,"T":0.31,"remark":"*"},
+{"level":2,"T":1.34,"remark":"*"},
+{"level":3,"T":2.37,"remark":"*"},
+{"level":4,"T":1.35,"remark":"* not all infotrons are needed; <a href='SF63_04.png'>view</a>"},
+{"level":5,"T":1.53,"remark":"*"},
+{"level":6,"T":2.32,"remark":"* when in the upper-right corner: <code>ddddddddlldlllUl...</code> no need to control zonks to fall rightward"},
+{"level":7,"T":2.18,"remark":"* up, down, right, up, left, down, right, left internal from bottom, right internal from top"},
+{"level":8,"T":2.20,"remark":"* not all..."},
+{"level":9,"T":1.17,"remark":"*"},
+{"level":10,"T":2.04,"remark":"*"},
+{"level":11,"T":0.57,"remark":"*"},
+{"level":12,"T":1.50,"remark":"*"},
+{"level":13,"T":3.14,"remark":"*"},
+{"level":14,"T":2.26,"remark":"* not all..."},
+{"level":15,"T":1.57,"remark":"*"},
+{"level":16,"T":2.45,"remark":"*"},
+{"level":17,"T":1.47,"remark":"*"},
+{"level":18,"T":0.02,"remark":"*"},
+{"level":19,"T":4.13,"remark":"can be slightly optimized","extra":"Olsen-banden"},
+{"level":20,"T":2.18,"remark":"can be slightly optimized"},
+{"level":21,"T":1.17},
+{"level":22,"T":1.42},
+{"level":23,"T":2.49,"remark":"*"},
+{"level":24,"T":3.52,"remark":"two T-bombs are redundant"},
+{"level":25,"T":2.49,"remark":"one T-bomb is redundant"},
+{"level":26,"T":0.15,"remark":"*"},
+{"level":27,"T":2.44,"remark":"*"},
+{"level":28,"T":2.23,"remark":"*"},
+{"level":29,"T":2.09,"remark":"* find the one-run way in the bomb chamber so that it is done in 42 seconds and 52 infotrons remaining in the next chambers"},
+{"level":30,"T":1.35,"remark":"*"},
+{"level":31,"T":2.06,"remark":"* not all..."},
+{"level":32,"T":2.30,"remark":"can be slightly optimized"},
+{"level":33,"T":1.39,"remark":"* little cheat"},
+{"level":34,"T":2.16,"remark":"*"},
+{"level":35,"T":0.36,"remark":"* do not mind the bomb, kill electron with infotron"},	
+{"level":36,"T":2.57,"remark":"*"},
+{"level":37,"T":2.50,"remark":"*"},
+{"level":38,"T":2.19},
+{"level":39,"T":3.04,"remark":"*"},
+{"level":40,"T":1.48,"remark":"* 1st chamber: from left, 2nd chamber wait at 3rd offset, 3rd chamber: <code>uP7lU14lUl|Ud|...</code>"},
+{"level":41,"T":0.44,"remark":"*"},
+{"level":42,"T":0.40,"remark":"*"},
+{"level":43,"T":2.48,"remark":"*"},
+{"level":44,"T":1.16,"remark":"can be slightly optimized"},
+{"level":45,"T":2.37,"remark":"*"},
+{"level":46,"T":2.45},
+{"level":47,"T":2.19},
+{"level":48,"T":3.26,"remark":"*"},
+{"level":49,"T":4.08},
+{"level":50,"T":2.17,"remark":"when before the U-portal:<br>	<code>uPul</code><br>	<code>rrrrrDllllllDr</code><br>	<code>lllddrddddlllurRllllLruLulruuuLdddldlluP</code>"},
+{"level":51,"T":2.18,"remark":"*"},
+{"level":52,"T":2.05,"remark":"* <a href='SF63_52.png'>view</a>"},
+{"level":53,"T":2.50,"remark":"*"},
+{"level":54,"T":0.37,"remark":"solver:<br>	<code>lulluuldldlddl|u|ru</code><br>	<code>ddrdrddl|d|r|uurd|r|d|r|uuurdddr|</code><br>	<code>u|llu|r|u|ru</code><br>	<code>l|dlulllld|l|u|ldE</code>"},
+{"level":55,"T":3.12},
+{"level":56,"T":3.12,"remark":"last part with snik-snaks can be optimized"},
+{"level":57,"T":3.07,"remark":"*"},
+{"level":58,"T":3.41,"remark":"* little cheat..."},
+{"level":59,"T":2.59,"remark":"*"},
+{"level":60,"T":2.41,"remark":"*"},
+{"level":61,"T":2.51,"remark":"*"},
+{"level":62,"T":0.17,"remark":"* just go up and..."},
+{"level":63,"T":5.21,"remark":"can be slightly optimized"},
+{"level":64,"T":3.15,"remark":"can be slightly optimized"},
+{"level":65,"T":1.32,"remark":"*"},
+{"level":66,"T":3.13},
+{"level":67,"T":7.48,"remark":"solver:<br>	<code>rrrrrddrruuuuuuuulllllldrurrrrrddlurulllllrrrrrddddddddlluurlddrruuuuuuudddddlllllluurdrdrrrr</code><br><br>	actually now it is ready to push them out:<br>	<code>ddrruuuuuuululllldldddrddlururrr...</code>"},
+{"level":68,"T":5.50},
+{"level":69,"T":2.40},
+{"level":70,"T":3.15,"remark":"there are 99 infotrons on the right side"},
+{"level":71,"T":2.52,"remark":"little cheat..."},
+{"level":72,"T":7.42,"remark":"can be slightly optimized"},
+{"level":73,"T":3.37,"remark":"can be slightly optimized"},
+{"level":74,"T":1.41},
+{"level":75,"T":4.11},
+{"level":76,"T":3.07},
+{"level":77,"T":4.00},
+{"level":78,"T":6.21},
+{"level":79,"T":5.28,"remark":"make the last s-s to follow you when collecting remaining infotrons"},
+{"level":80,"T":4.12,"remark":"one T-bomb is redundant"},
+{"level":81,"T":3.13,"remark":"not all..."},
+{"level":82,"T":9.21,"remark":"can be optimized"},
+{"level":83,"T":3.45,"remark":"can be slightly optimized"},
+{"level":84,"T":1.23,"remark":"it is possible to run: <code>39r2u17r4uU4d21lu...</code> with only one stop during &quot;<code>39r</code>&quot;<br>collect all infotrons from &quot;THINK&quot;<br><code>d...</code> also without stop... and collect all infotrons from the green area, avoiding s-s"},
+{"level":85,"T":5.59,"remark":"can be significantly optimized!"},
+{"level":86,"T":4.44,"remark":"it is enough to use only two bombs!"},
+{"level":87,"T":3.16,"remark":"*"},
+{"level":88,"T":3.45,"remark":"can be slightly optimized"},
+{"level":89,"T":4.24,"remark":"*"},
+{"level":90,"T":1.36,"remark":"*"},
+{"level":91,"T":2.20,"remark":"sometimes it is possible to convert the electron into 9 infotrons!"},
+{"level":92,"T":2.43,"remark":"can be slightly optimized"},
+{"level":93,"T":1.40,"remark":"*"},
+{"level":94,"T":3.52,"remark":"can be slightly optimized"},
+{"level":95,"T":3.31,"remark":"part with s-s can be slightly optimized"},
+{"level":96,"T":5.44},
+{"level":97,"T":5.50,"remark":"not all..."},
+{"level":98,"T":5.32,"remark":"not all..."},
+{"level":99,"T":1.12,"remark":"* one run!"},
+{"level":100,"T":6.14},
+{"level":101,"T":3.38},
+{"level":102,"T":3.24,"remark":"*"},
+{"level":103,"T":4.40},
+{"level":104,"T":2.55,"remark":"* kill electrons near bombs to increase the number of infotrons"},
+{"level":105,"T":6.41,"remark":"0. do not block any portal;<br>1. push out one bomb at the beginning but do not put it to the leftmost slot;<br>2. collect all infotrons in the lower part of the next chamber and release the L-portal;<br>3. after each round observe the snik-snak:<br> <code>ddddrddDrrddllddddddRlluuuuuuuul</code><br><code>luuruuuulllllrrrrrdddd</code><br><code>ldddlllllllLruuuuuuurrrlllllDrrrr</code><br><code>dddddddlllr7u4l7d6r</code><br><code>urrrruuuuruull</code> wait here as s-s is turning down-left, push the zonk to kill s-s as it leaves the bay &ndash; released zonk should fall on the bomb;<br>4. push the zonk into the hole and then push the bomb to release two other bombs;<br>5. place movable bombs near the exit and the confined infotron (do not use T-bomb!)"},
+{"level":106,"T":4.06},
+{"level":107,"T":4.25,"remark":"one infotron in at the beginning can be omitted"},
+{"level":108,"T":3.05,"remark":"bug-cheat!"},
+{"level":109,"T":1.43,"remark":"little cheat"},
+{"level":110,"T":5.33},
+{"level":111,"T":4.57},
+];
+
+
+
+var Sigma_T = 0.0;
+var Sigma_H = 0.0;
+var Sigma_M = 0.0;
+var Sigma_S = 0.0;
+
+for (let i = 0; i < SP63.length; i++) {
+    var ST = SP63[i]["T"];
+    var Tseconds = 60*Math.trunc(ST) + (ST-Math.trunc(ST))*100;
+    Sigma_T += Tseconds;
+   
+    Sigma_H = Math.trunc(Sigma_T/60/60);
+    Sigma_M = Math.trunc((Sigma_T - Sigma_H*60*60)/60);
+    Sigma_S = (Sigma_T - Sigma_H*60*60) - Sigma_M*60;
+
+    var c = "complete";
+    if (!SP63[i]["T"]) {
+        c = "incomplete";
+    }
+
+    document.write("<tr>");
+    document.write("<td>"+SP63[i]["level"]+"</td><td class='"+c+"'>"+SP63[i]["T"].toFixed(2)+"</td>");
+//    document.write("<td>"+Sigma_T.toFixed(2)+"</td>");
+    document.write("<td>"+Sigma_H.toString().padStart(2, "0")+":"+Sigma_M.toString().padStart(2, "0")+":"+Sigma_S.toString().padStart(2, "0")+"</td>");
+    var r = "-";
+    if (SP63[i]["remark"]) {
+        r = SP63[i]["remark"];
+    }
+    if (r.includes("optimized")) {
+        c = "incomplete"
+    }
+    if (r.includes("*")) {
+        c = "perfect"
+    }
+    document.write("<td class='"+c+"'>"+r+"</td>");
+    
+    document.write("</tr>");
+} 
+
+</script>
+
+</table>
+<p>&block;</p>
+
+
+
+
