@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<title>x86 &bull; QBasic</title>
+<link rel="icon" href="../x86.ico">
+<link rel="stylesheet" href="../x86.css">
+
+
+<p>updated at 2012-10-02 by wojtek [not yet at that time] at bitologia.org (<a href="../index.html">index</a>)</p>
+<hr>
+
+<h1>Q-Basic codes from 1994 &ndash; 1998, fixed and rewritten in 2012</h1>
+<h2>fractals</h2>
+<ul>
+  <li><a href="IFSP.BAS">IFSP.BAS</a> &rarr; <a href="IFSP.PNG" title="IFSP">IFSP.PNG</a></li>
+  <li><a href="IFS_1.BAS">IFS_1.BAS</a> &rarr; <a href="IFS_1.JPEG" title="IFS">IFS_1.JPEG</a></li>
+  <li><a href="IFS_2.BAS">IFS_2.BAS</a> &rarr; <a href="IFS_2.JPEG" title="IFS">IFS_2.JPEG</a></li>
+  <li><a href="IFS_L.BAS">IFS_L.BAS</a> &rarr; <a href="IFS_L.JPEG" title="IFS">IFS_L.JPEG</a></li>
+
+  <li><a href="L_SYSTEM.BAS">L_SYSTEM.BAS</a> &rarr; <a href="L_SYSTEM_1.PNG" title="L-SYSTEM">L_SYSTEM_1.PNG</a>,
+                <a href="L_SYSTEM_2.PNG" title="L-SYSTEM">L_SYSTEM_2.PNG</a></li>
+
+  <li><a href="DRAGON.BAS">DRAGON.BAS</a> &rarr;<a href="DRAGON.JPEG">DRAGON.JPEG</a></li>
+
+  <li><a href="JULIA.BAS">JULIA.BAS</a> &rarr; <a href="JULIA.PNG" title="Julia set">JULIA.PNG</a></li>
+  <li>Mandelbrot set: <a href="M.BAS">M.BAS</a> &rarr; <a href="M.PNG" title="Mandelbrot set">M.PNG</a></li>
+
+  <li>Sierpi&nacute;ski triangle generator: <a href="STG.BAS">STG.BAS</a></li>
+</ul>
+
+<h2>recursive structures</h2>
+<ul>
+  <li><a href="R_X2D.BAS">R_X2D.BAS</a> &rarr; <a href="R_SC.PNG" title="Recursive structure">R_SC.PNG</a>,
+                <a href="R_SP3D_1.JPEG" title="Recursive structure">R_SP3D_1.JPEG</a>,
+                <a href="R_SP3D_2.JPEG" title="Recursive structure">R_SP3D_2.JPEG</a>,
+                <a href="R_X2D.PNG" title="Recursive structure">R_X2D.PNG</a>,
+                <a href="R_X2D_ST.PNG" title="Recursive structure">R_X2D_ST.PNG</a>,
+                <a href="R_X3D.PNG" title="Recursive structure">R_X3D.PNG</a></li>
+
+  <li><a href="R_STB.BAS">R_STB.BAS</a> &rarr; <a href="R_STB.PNG" title="Recursive structure">R_STB.PNG</a></li>
+</ul>
+
+<h2>games</h2>
+<ul>
+  <li><a href="SOKOBAN.BAS">SOKOBAN.BAS</a> &rarr; <a href="SOKOBAN_1996_2_130.PNG" title="Clone of SOKOBAN">SOKOBAN_1996_2_130.PNG</a>,
+                <a href="SOKOBAN_1996_2_187.PNG" title="Clone of SOKOBAN">SOKOBAN_1996_2_187.PNG</a>,
+                <a href="SOKOBAN_1996_3_000.JPEG" title="Clone of SOKOBAN - early JPEG... (EPSON S. 820)">SOKOBAN_1996_3_000.JPEG</a>,
+                <a href="SOKOBAN_1996_3_000.PNG" title="Clone of SOKOBAN">SOKOBAN_1996_3_000.PNG</a>,
+                <a href="SOKOBAN_2012_2_000.PNG" title="Clone of SOKOBAN">SOKOBAN_2012_2_000.PNG</a>,
+                <a href="SOKOBAN_2012_2_164.PNG" title="Clone of SOKOBAN">SOKOBAN_2012_2_164.PNG</a></li>
+
+  <li><a href="PUZZLE.BAS">PUZZLE.BAS</a> &rarr; <a href="PUZZLE_1.PNG" title="Puzzle: ordered pattern">PUZZLE_1.PNG</a>,
+                <a href="PUZZLE_2.PNG" title="Puzzle: disordered pattern">PUZZLE_2.PNG</a></li>
+
+  <li><a href="TETRIS.BAS">TETRIS.BAS</a> &rarr; <a href="TETRIS_1996.JPEG" title="Tetris of 1996">TETRIS_1996.JPEG</a>,
+                <a href="TETRIS_2012.PNG" title="Tetris of 2012">TETRIS_2012.PNG</a></li>
+</ul>
+
+
+
+
+
+<!--pre>
+' <strong>Q-BASIC STUFF FROM 1994-1998</strong>
+' <strong>FIXED AND REFACTORED IN 2012</strong>
+
+' <strong>FRACTALS</strong>
+  <a href="IFSP.BAS">IFSP.BAS</a>      <a href="IFSP.PNG" title="IFSP">IFSP.PNG</a>
+  <a href="IFS_1.BAS">IFS_1.BAS</a>     <a href="IFS_1.JPEG" title="IFS">IFS_1.JPEG</a>
+  <a href="IFS_2.BAS">IFS_2.BAS</a>     <a href="IFS_2.JPEG" title="IFS">IFS_2.JPEG</a>
+  <a href="IFS_L.BAS">IFS_L.BAS</a>     <a href="IFS_L.JPEG" title="IFS">IFS_L.JPEG</a>
+
+  <a href="L_SYSTEM.BAS">L_SYSTEM.BAS</a>  <a href="L_SYSTEM_1.PNG" title="L-SYSTEM">L_SYSTEM_1.PNG</a>
+                <a href="L_SYSTEM_2.PNG" title="L-SYSTEM">L_SYSTEM_2.PNG</a>
+
+  <a href="DRAGON.BAS">DRAGON.BAS</a>    <a href="DRAGON.JPEG">DRAGON.JPEG</a>
+
+  <a href="JULIA.BAS">JULIA.BAS</a>     <a href="JULIA.PNG" title="Julia set">JULIA.PNG</a>
+  <a href="M.BAS">M.BAS</a>         <a href="M.PNG" title="Mandelbrot set">M.PNG</a> ' MANDELBROT
+
+  <a href="STG.BAS">STG.BAS</a>
+
+' <strong>RECURSIVE STRUCTURES</strong>
+  <a href="R_X2D.BAS">R_X2D.BAS</a>     <a href="R_SC.PNG" title="Recursive structure">R_SC.PNG</a>
+                <a href="R_SP3D_1.JPEG" title="Recursive structure">R_SP3D_1.JPEG</a>
+                <a href="R_SP3D_2.JPEG" title="Recursive structure">R_SP3D_2.JPEG</a>
+                <a href="R_X2D.PNG" title="Recursive structure">R_X2D.PNG</a>
+                <a href="R_X2D_ST.PNG" title="Recursive structure">R_X2D_ST.PNG</a>
+                <a href="R_X3D.PNG" title="Recursive structure">R_X3D.PNG</a>
+
+  <a href="R_STB.BAS">R_STB.BAS</a>     <a href="R_STB.PNG" title="Recursive structure">R_STB.PNG</a>
+
+' <strong>GAMES</strong>
+  <a href="SOKOBAN.BAS">SOKOBAN.BAS</a>   <a href="SOKOBAN_1996_2_130.PNG" title="Clone of SOKOBAN">SOKOBAN_1996_2_130.PNG</a>
+                <a href="SOKOBAN_1996_2_187.PNG" title="Clone of SOKOBAN">SOKOBAN_1996_2_187.PNG</a>
+                <a href="SOKOBAN_1996_3_000.JPEG" title="Clone of SOKOBAN - early JPEG... (EPSON S. 820)">SOKOBAN_1996_3_000.JPEG</a>
+                <a href="SOKOBAN_1996_3_000.PNG" title="Clone of SOKOBAN">SOKOBAN_1996_3_000.PNG</a>
+                <a href="SOKOBAN_2012_2_000.PNG" title="Clone of SOKOBAN">SOKOBAN_2012_2_000.PNG</a>
+                <a href="SOKOBAN_2012_2_164.PNG" title="Clone of SOKOBAN">SOKOBAN_2012_2_164.PNG</a>
+
+  <a href="PUZZLE.BAS">PUZZLE.BAS</a>    <a href="PUZZLE_1.PNG" title="Puzzle: ordered pattern">PUZZLE_1.PNG</a>
+                <a href="PUZZLE_2.PNG" title="Puzzle: disordered pattern">PUZZLE_2.PNG</a>
+
+  <a href="TETRIS.BAS">TETRIS.BAS</a>    <a href="TETRIS_1996.JPEG" title="Tetris of 1996">TETRIS_1996.JPEG</a>
+                <a href="TETRIS_2012.PNG" title="Tetris of 2012">TETRIS_2012.PNG</a>
+</pre-->
+<hr>
+<h2>references (in Polish)</h2>
+
+<p><sup>[1]</sup> independent low-cost computer magazin (364592) published
+in 1991 &ndash; 1992 in Cracow
+by <a href="http://www.binek.pl/98_S.html" rel="noreferrer" target="_blank">Tadeusz Binek</a><!--, printed in
+<a href="../../AGROBISP.png">AGROBISP</a>-->.</p>
+
+<!--veteran <a href="https://chaos.if.uj.edu.pl/~wojtek/e_diagram" rel="nofollow" target="_blank">cruciverbalists</a>
+readily see that several sources come from an iconic and completely forgotten periodical &quot;Sam na sam&quot;.</p-->
+
+<!--ul>
+<li><a href="../364592_1991_11_1" rel="nofollow">1991 11 (1)</a></li>
+<li><a href="../364592_1991_12_2" rel="nofollow">1991 12 (2)</a></li>
+<li><a href="../364592_1992_01_3" rel="nofollow">1992 01 (3)</a></li>
+<li><a href="../364592_1992_02_4" rel="nofollow">1992 02 (4)</a></li>
+<li><a href="../364592_1992_03_5" rel="nofollow">1992 03 (5)</a></li>
+</ul-->
+<p><sup>[2]</sup> <a href="http://www.jsobola.atari8.info/dereatari/literatdere/basic.pdf" rel="noreferrer" target="_blank" title="&quot;ATARI BASIC, J&#281;zyk programowania i obs&#322;uga mikrokomputera ATARI&quot;, K. Bednarek et al., W-Wa (1987)">ATARI BASIC</a> by K. Bednarek et al.</p>
+<!--p><sup>[3]</sup> (TURBO) <a href="../ATARI_BASIC" rel="nofollow">ATARI BASIC</a> (standard)</p-->
+<!--p><sup>[4]</sup> <a href="../INTERPRETER" rel="nofollow">INTERPRETER</a> - ATARI 800XL/65XE, 130XE (Mapasoft)</p-->
+
+
