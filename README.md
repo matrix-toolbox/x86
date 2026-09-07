@@ -10,6 +10,8 @@ With the return to normality, I no longer had time for fun...
 Well, nobody would believe it, but I can partly prove it: the original data are still present on the <a href="https://bitologia.org/x86" target="_blank">bitologia.org/x86</a> server, and the server itself is up and alive. For how long, we shall see.
 
 That is why the structure and language might seem clumsy and awkward. In the future, I will try to gradually polish it. :)
+Especially to separate assembly-related stuff from BASIC and C.
+
 The only resources used to create this SW were:
 * original binaries (<a href="https://en.wikipedia.org/wiki/DOS_MZ_executable" target="_blank">MZ-EXE</a>),
 * <a href="https://katalogi.bn.org.pl/discovery/search?query=isbn,contains,8320416760,AND&tab=LibraryCatalog&search_scope=NLOP_IZ_NZ&vid=48OMNIS_NLOP:48OMNIS_NLOP&mode=advanced&offset=0" target="_blank">Fraktale i Chaos</a> (by Jacek Kudrewicz, in Polish),
