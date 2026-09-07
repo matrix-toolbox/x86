@@ -18,7 +18,7 @@ The only resources used to create this SW were:
 * [Programowanie w Języku Assembler](https://isbnsearch.org/isbn/8385190899) (by Stanisław Kruk, in Polish),
 * [Stack Overflow](https://stackoverflow.com/questions),
 * old computer [magazines](https://en.wikipedia.org/wiki/Bajtek),
-* yet another booklet on programming co-processors (I have forgotten the title cannot find it online at the moment...)
+* yet another booklet on programming co-processors (I have forgotten the title and cannot find it online at the moment...)
   
 Other references are given in the individual codes.
 
